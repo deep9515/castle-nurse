@@ -620,49 +620,78 @@ tbody tr:last-child td {
   background: #fff;
 }
 
-.status-picker {
+.candidate-picker {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 0;
-  border: 0;
-  padding: 0;
+  gap: 10px;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
-.status-picker legend {
-  grid-column: 1 / -1;
-  margin-bottom: 7px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.status-picker label {
-  position: relative;
-  min-height: 44px;
+.candidate-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 10px 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.candidate-card strong,
+.attendance-summary-card strong,
+.attendance-rank-row strong {
+  display: block;
   color: var(--ink);
-  text-align: center;
+  font-weight: 950;
+  line-height: 1.3;
+}
+
+.candidate-card span,
+.attendance-summary-card span,
+.attendance-rank-row small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.candidate-card.attending {
+  border-color: rgba(31, 122, 77, 0.48);
+  background: rgba(31, 122, 77, 0.08);
+}
+
+.candidate-card.pending {
+  border-color: rgba(242, 193, 78, 0.78);
+  background: rgba(242, 193, 78, 0.14);
+}
+
+.candidate-card.absent {
+  border-color: rgba(183, 100, 50, 0.45);
+  background: rgba(183, 100, 50, 0.08);
+}
+
+.candidate-actions {
+  display: inline-grid;
+  grid-template-columns: repeat(3, 42px);
+  gap: 6px;
+}
+
+.candidate-actions button {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
   cursor: pointer;
   background: #fff;
 }
 
-.status-picker label:has(input:checked) {
-  border-color: var(--green);
+.candidate-actions button.is-active {
+  border-color: var(--navy);
   color: #fff;
-  background: var(--green);
-}
-
-.status-picker input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.status-picker span {
-  font-weight: 950;
+  background: var(--navy);
 }
 
 .attendance-submit {
@@ -693,6 +722,13 @@ tbody tr:last-child td {
 
 .attendance-board {
   padding: clamp(18px, 3vw, 28px);
+}
+
+.attendance-view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .attendance-counts {
@@ -743,68 +779,136 @@ tbody tr:last-child td {
   gap: 8px;
 }
 
-.attendance-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.attendance-summary-card {
+  display: grid;
+  gap: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 11px 12px;
+  padding: 14px;
   background: #fff;
 }
 
-.attendance-row div {
+.candidate-summary-head {
   display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.attendance-row strong {
-  color: var(--ink);
-  font-weight: 950;
-}
-
-.attendance-row small {
-  min-width: 0;
-  color: var(--muted);
-  font-weight: 750;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.attendance-number {
-  flex: 0 0 auto;
-  color: var(--navy);
-  font-size: 17px;
-  font-weight: 950;
-}
-
-.attendance-status {
+.candidate-summary-head b {
   flex: 0 0 auto;
   border-radius: 999px;
-  padding: 6px 9px;
+  padding: 6px 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 950;
+  background: var(--green);
+}
+
+.candidate-summary-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.candidate-summary-counts span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--ink);
+  background: #edf1eb;
+}
+
+.attendance-summary-card p {
+  margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.attendance-matrix-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.attendance-matrix {
+  min-width: 960px;
+  box-shadow: none;
+}
+
+.attendance-matrix th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: #f0f3ed;
+}
+
+.attendance-matrix th span,
+.attendance-matrix th small {
+  display: block;
+}
+
+.attendance-matrix td {
+  text-align: center;
+}
+
+.matrix-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 32px;
+  border-radius: 8px;
+  color: var(--muted);
   font-weight: 950;
   background: #edf1eb;
 }
 
-.attendance-status.attending {
+.matrix-status.attending {
   color: #fff;
   background: var(--green);
 }
 
-.attendance-status.pending {
+.matrix-status.pending {
   color: var(--ink);
   background: var(--gold);
 }
 
-.attendance-status.absent {
+.matrix-status.absent {
   color: #fff;
   background: var(--clay);
+}
+
+.attendance-rank-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.attendance-rank-row > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 950;
+  background: var(--navy);
+}
+
+.attendance-rank-row p {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 950;
+  white-space: nowrap;
 }
 
 .members-section {
@@ -1379,21 +1483,23 @@ tbody tr:last-child td {
     grid-template-columns: 1fr;
   }
 
-  .status-picker {
+  .candidate-card,
+  .candidate-summary-head,
+  .attendance-rank-row {
     grid-template-columns: 1fr;
   }
 
-  .attendance-row,
-  .attendance-row div {
+  .candidate-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .attendance-rank-row {
     align-items: flex-start;
   }
 
-  .attendance-row {
-    flex-direction: column;
-  }
-
-  .attendance-row div {
-    flex-wrap: wrap;
+  .attendance-rank-row p {
+    white-space: normal;
   }
 
   .practice-media {

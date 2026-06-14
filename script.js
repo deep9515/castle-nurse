@@ -13,6 +13,15 @@ const schedule = [
     type: "practice",
     meeting: "現地集合",
   },
+  {
+    date: "2026-07-01",
+    displayDate: "7/XX",
+    time: "時間未定",
+    opponent: "練習",
+    venue: "錦糸公園",
+    type: "practice",
+    meeting: "現地集合",
+  },
 ];
 
 const members = [
@@ -106,14 +115,114 @@ const typeLabels = {
 };
 
 const attendanceStatusLabels = {
+  attending: "⭕",
+  pending: "🔺",
+  absent: "×",
+  unanswered: "未回答",
+};
+
+const attendanceStatusNames = {
   attending: "参加",
-  pending: "未定",
-  absent: "不参加",
+  pending: "調整中",
+  absent: "不可",
   unanswered: "未回答",
 };
 
 const attendanceStatusOrder = ["attending", "pending", "absent", "unanswered"];
 const attendanceStorageKey = "castle-nurse-attendance-v1";
+const attendanceCandidates = [
+  {
+    id: "2026-07-03-night",
+    date: "2026-07-03",
+    label: "07/03(金)",
+    slot: "金夜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-04-day",
+    date: "2026-07-04",
+    label: "07/04(土)",
+    slot: "土曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-05-day",
+    date: "2026-07-05",
+    label: "07/05(日)",
+    slot: "日曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-10-night",
+    date: "2026-07-10",
+    label: "07/10(金)",
+    slot: "金夜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-11-day",
+    date: "2026-07-11",
+    label: "07/11(土)",
+    slot: "土曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-12-day",
+    date: "2026-07-12",
+    label: "07/12(日)",
+    slot: "日曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-17-night",
+    date: "2026-07-17",
+    label: "07/17(金)",
+    slot: "金夜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-18-day",
+    date: "2026-07-18",
+    label: "07/18(土)",
+    slot: "土曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-19-day",
+    date: "2026-07-19",
+    label: "07/19(日)",
+    slot: "日曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-24-night",
+    date: "2026-07-24",
+    label: "07/24(金)",
+    slot: "金夜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-25-day",
+    date: "2026-07-25",
+    label: "07/25(土)",
+    slot: "土曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-26-day",
+    date: "2026-07-26",
+    label: "07/26(日)",
+    slot: "日曜",
+    venue: "錦糸公園",
+  },
+  {
+    id: "2026-07-31-night",
+    date: "2026-07-31",
+    label: "07/31(金)",
+    slot: "金夜",
+    venue: "錦糸公園",
+  },
+];
 
 const scheduleRows = document.querySelector("#scheduleRows");
 const memberGrid = document.querySelector("#memberGrid");
@@ -121,7 +230,6 @@ const resultList = document.querySelector("#resultList");
 const memberSearch = document.querySelector("#memberSearch");
 const contactForm = document.querySelector("#contactForm");
 const attendanceForm = document.querySelector("#attendanceForm");
-const attendanceEvent = document.querySelector("#attendanceEvent");
 const attendanceMember = document.querySelector("#attendanceMember");
 const attendanceComment = document.querySelector("#attendanceComment");
 const attendanceTeamCode = document.querySelector("#attendanceTeamCode");
@@ -130,9 +238,13 @@ const attendanceSaveState = document.querySelector("#attendanceSaveState");
 const attendanceCounts = document.querySelector("#attendanceCounts");
 const attendanceRows = document.querySelector("#attendanceRows");
 const attendanceBoardTitle = document.querySelector("#attendanceBoardTitle");
+const attendanceCandidateGrid = document.querySelector("#attendanceCandidateGrid");
+const attendanceViewButtons = document.querySelectorAll("[data-attendance-view]");
 
 let attendanceRecords = [];
 let attendanceClient = null;
+let attendanceDraft = {};
+let activeAttendanceView = "cards";
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("ja-JP", {
@@ -140,6 +252,10 @@ function formatDate(value) {
     day: "2-digit",
     weekday: "short",
   }).format(new Date(`${value}T00:00:00+09:00`));
+}
+
+function formatScheduleDate(game) {
+  return game.displayDate || formatDate(game.date);
 }
 
 function scheduleTitle(game) {
@@ -150,18 +266,6 @@ function sortedMembers() {
   return members
     .slice()
     .sort((a, b) => a.number - b.number || a.name.localeCompare(b.name, "ja"));
-}
-
-function eventId(game) {
-  return [game.date, game.time, game.opponent, game.venue].join("|");
-}
-
-function eventById(id) {
-  return schedule.find((game) => eventId(game) === id) || schedule[0];
-}
-
-function eventLabel(game) {
-  return `${formatDate(game.date)} ${game.time} / ${game.opponent} / ${game.venue}`;
 }
 
 function escapeHtml(value) {
@@ -183,7 +287,7 @@ function renderSchedule(filter = "all") {
     .map(
       (game) => `
         <tr>
-          <td>${formatDate(game.date)}</td>
+          <td>${formatScheduleDate(game)}</td>
           <td>${game.time}</td>
           <td>${game.opponent}</td>
           <td>${game.venue}</td>
@@ -330,7 +434,7 @@ function upsertLocalAttendance(record) {
   attendanceRecords = records;
 }
 
-async function saveAttendance(record) {
+async function saveAttendance(record, options = {}) {
   if (!attendanceClient) {
     upsertLocalAttendance(record);
     return { ok: true };
@@ -353,7 +457,9 @@ async function saveAttendance(record) {
     return { ok: false, message: "保存に失敗しました。" };
   }
 
-  await loadAttendanceRecords();
+  if (options.reload !== false) {
+    await loadAttendanceRecords();
+  }
   return { ok: true };
 }
 
@@ -364,10 +470,6 @@ function setAttendanceState(message, tone = "muted") {
 
 function buildAttendanceOptions() {
   if (!attendanceForm) return;
-  attendanceEvent.innerHTML = schedule
-    .map((game) => `<option value="${escapeHtml(eventId(game))}">${escapeHtml(eventLabel(game))}</option>`)
-    .join("");
-
   attendanceMember.innerHTML = sortedMembers()
     .map(
       (member) =>
@@ -378,64 +480,227 @@ function buildAttendanceOptions() {
     .join("");
 }
 
-function renderAttendanceBoard() {
-  if (!attendanceForm) return;
-  const selectedEventId = attendanceEvent.value || eventId(schedule[0]);
-  const selectedEvent = eventById(selectedEventId);
-  const recordsForEvent = attendanceRecords.filter((record) => record.event_id === selectedEventId);
+function candidateLabel(candidate) {
+  return `${candidate.label} ${candidate.slot}`;
+}
+
+function countCandidate(candidateId) {
+  const records = attendanceRecords.filter((record) => record.event_id === candidateId);
   const counts = attendanceStatusOrder.reduce(
     (result, status) => ({
       ...result,
       [status]:
         status === "unanswered"
-          ? Math.max(0, members.length - recordsForEvent.length)
-          : recordsForEvent.filter((record) => record.status === status).length,
+          ? Math.max(0, members.length - records.length)
+          : records.filter((record) => record.status === status).length,
     }),
     {},
   );
+  return { records, counts };
+}
 
-  attendanceBoardTitle.textContent = eventLabel(selectedEvent);
-  attendanceCounts.innerHTML = attendanceStatusOrder
+function candidateScore(candidateId) {
+  const { counts } = countCandidate(candidateId);
+  return counts.attending * 2 + counts.pending - counts.absent * 1.2;
+}
+
+function renderCandidatePicker() {
+  if (!attendanceForm) return;
+  attendanceCandidateGrid.innerHTML = attendanceCandidates
     .map(
-      (status) => `
-        <article class="attendance-count ${status}">
-          <span>${counts[status]}</span>
-          <p>${attendanceStatusLabels[status]}</p>
+      (candidate) => {
+        const status = attendanceDraft[candidate.id] || "unanswered";
+        return `
+        <article class="candidate-card ${status}">
+          <div>
+            <strong>${escapeHtml(candidate.label)}</strong>
+            <span>${escapeHtml(candidate.slot)} / ${escapeHtml(candidate.venue)}</span>
+          </div>
+          <div class="candidate-actions" role="group" aria-label="${escapeHtml(candidateLabel(candidate))}の出欠">
+            ${["attending", "pending", "absent"]
+              .map(
+                (option) => `
+                  <button
+                    class="${status === option ? "is-active" : ""}"
+                    type="button"
+                    data-candidate-id="${escapeHtml(candidate.id)}"
+                    data-status="${option}"
+                    aria-label="${escapeHtml(candidateLabel(candidate))} ${attendanceStatusNames[option]}"
+                  >
+                    ${attendanceStatusLabels[option]}
+                  </button>
+                `,
+              )
+              .join("")}
+          </div>
         </article>
-      `,
+      `;
+      },
     )
     .join("");
+}
 
-  attendanceRows.innerHTML = sortedMembers()
-    .map((member) => {
-      const record = findAttendanceRecord(selectedEventId, member.number);
-      const status = record?.status || "unanswered";
-      const comment = record?.comment ? `<small>${escapeHtml(record.comment)}</small>` : "";
+function renderAttendanceCounts() {
+  const answeredMembers = new Set(attendanceRecords.map((record) => record.member_id)).size;
+  const ranked = attendanceCandidates
+    .map((candidate) => ({ candidate, score: candidateScore(candidate.id), counts: countCandidate(candidate.id).counts }))
+    .sort((a, b) => b.score - a.score);
+  const best = ranked[0];
+  const totalAnswered = attendanceRecords.length;
+
+  attendanceCounts.innerHTML = `
+    <article class="attendance-count">
+      <span>${attendanceCandidates.length}</span>
+      <p>候補日</p>
+    </article>
+    <article class="attendance-count">
+      <span>${answeredMembers}</span>
+      <p>回答メンバー</p>
+    </article>
+    <article class="attendance-count attending">
+      <span>${best ? best.counts.attending : 0}</span>
+      <p>最多 ${attendanceStatusLabels.attending}</p>
+    </article>
+    <article class="attendance-count pending">
+      <span>${totalAnswered}</span>
+      <p>回答総数</p>
+    </article>
+  `;
+}
+
+function memberNameById(memberId) {
+  return members.find((member) => String(member.number) === String(memberId))?.name || memberId;
+}
+
+function memberNamesFor(candidateId, status) {
+  return attendanceRecords
+    .filter((record) => record.event_id === candidateId && record.status === status)
+    .map((record) => memberNameById(record.member_id));
+}
+
+function renderAttendanceCards() {
+  return attendanceCandidates
+    .map((candidate) => {
+      const { counts } = countCandidate(candidate.id);
+      const availableMembers = memberNamesFor(candidate.id, "attending");
       return `
-        <article class="attendance-row">
-          <div>
-            <span class="attendance-number">${String(member.number).padStart(2, "0")}</span>
-            <strong>${escapeHtml(member.name)}</strong>
-            ${comment}
+        <article class="attendance-summary-card">
+          <div class="candidate-summary-head">
+            <div>
+              <strong>${escapeHtml(candidate.label)}</strong>
+              <span>${escapeHtml(candidate.slot)} / ${escapeHtml(candidate.venue)}</span>
+            </div>
+            <b>${attendanceStatusLabels.attending} ${counts.attending}</b>
           </div>
-          <span class="attendance-status ${status}">${attendanceStatusLabels[status]}</span>
+          <div class="candidate-summary-counts">
+            <span>${attendanceStatusLabels.attending} ${counts.attending}</span>
+            <span>${attendanceStatusLabels.pending} ${counts.pending}</span>
+            <span>${attendanceStatusLabels.absent} ${counts.absent}</span>
+            <span>未 ${counts.unanswered}</span>
+          </div>
+          <p>${availableMembers.length ? escapeHtml(availableMembers.join("、")) : "参加者未回答"}</p>
         </article>
       `;
     })
     .join("");
 }
 
+function renderAttendanceMatrix() {
+  const columns = attendanceCandidates
+    .map(
+      (candidate) => `
+        <th>
+          <span>${escapeHtml(candidate.label)}</span>
+          <small>${escapeHtml(candidate.slot)}</small>
+        </th>
+      `,
+    )
+    .join("");
+  const rows = sortedMembers()
+    .map((member) => {
+      const cells = attendanceCandidates
+        .map((candidate) => {
+          const status = findAttendanceRecord(candidate.id, member.number)?.status || "unanswered";
+          return `<td><span class="matrix-status ${status}">${attendanceStatusLabels[status]}</span></td>`;
+        })
+        .join("");
+      return `
+        <tr>
+          <th>${String(member.number).padStart(2, "0")} ${escapeHtml(member.name)}</th>
+          ${cells}
+        </tr>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="attendance-matrix-wrap">
+      <table class="attendance-matrix">
+        <thead>
+          <tr>
+            <th>メンバー</th>
+            ${columns}
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderAttendanceRanking() {
+  return attendanceCandidates
+    .map((candidate) => ({ candidate, score: candidateScore(candidate.id), counts: countCandidate(candidate.id).counts }))
+    .sort((a, b) => b.score - a.score)
+    .map(
+      ({ candidate, counts }, index) => `
+        <article class="attendance-rank-row">
+          <span>${index + 1}</span>
+          <div>
+            <strong>${escapeHtml(candidate.label)} ${escapeHtml(candidate.slot)}</strong>
+            <small>${escapeHtml(candidate.venue)}</small>
+          </div>
+          <p>
+            ${attendanceStatusLabels.attending} ${counts.attending}
+            ${attendanceStatusLabels.pending} ${counts.pending}
+            ${attendanceStatusLabels.absent} ${counts.absent}
+          </p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderAttendanceBoard() {
+  if (!attendanceForm) return;
+  attendanceBoardTitle.textContent = "7月候補";
+  renderAttendanceCounts();
+
+  if (activeAttendanceView === "matrix") {
+    attendanceRows.innerHTML = renderAttendanceMatrix();
+    return;
+  }
+
+  if (activeAttendanceView === "ranking") {
+    attendanceRows.innerHTML = renderAttendanceRanking();
+    return;
+  }
+
+  attendanceRows.innerHTML = renderAttendanceCards();
+}
+
 function syncAttendanceForm() {
   if (!attendanceForm) return;
-  const record = findAttendanceRecord(attendanceEvent.value, attendanceMember.value);
-  const status = record?.status || "attending";
-  const statusInput = attendanceForm.querySelector(
-    `input[name="attendanceStatus"][value="${status}"]`,
-  );
-  if (statusInput) {
-    statusInput.checked = true;
-  }
-  attendanceComment.value = record?.comment || "";
+  attendanceDraft = {};
+  const comments = [];
+  attendanceCandidates.forEach((candidate) => {
+    const record = findAttendanceRecord(candidate.id, attendanceMember.value);
+    if (!record) return;
+    attendanceDraft[candidate.id] = record.status;
+    if (record.comment) comments.push(record.comment);
+  });
+  attendanceComment.value = comments[0] || "";
+  renderCandidatePicker();
 }
 
 function rememberTeamCode() {
@@ -465,6 +730,7 @@ async function initAttendance() {
   initAttendanceClient();
   await loadAttendanceRecords();
   syncAttendanceForm();
+  renderAttendanceBoard();
 }
 
 function resultStatus(result) {
@@ -533,7 +799,7 @@ function renderSummary() {
   document.querySelector("#memberCount").textContent = `${members.length}名`;
   document.querySelector("#nextMonthGames").textContent = `${upcoming.length}件`;
   document.querySelector("#nextGameTitle").textContent = scheduleTitle(next);
-  document.querySelector("#nextGameDate").textContent = `${formatDate(next.date)} ${next.time}`;
+  document.querySelector("#nextGameDate").textContent = `${formatScheduleDate(next)} ${next.time}`;
   document.querySelector("#nextGameVenue").textContent = next.venue;
   document.querySelector("#nextGameOpponent").textContent = next.opponent;
 }
@@ -585,15 +851,31 @@ memberSearch.addEventListener("input", () => {
   renderMembers(activePosition, memberSearch.value);
 });
 
-attendanceEvent.addEventListener("change", () => {
+attendanceMember.addEventListener("change", syncAttendanceForm);
+
+attendanceCandidateGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-candidate-id][data-status]");
+  if (!button) return;
+  attendanceDraft[button.dataset.candidateId] = button.dataset.status;
+  renderCandidatePicker();
   renderAttendanceBoard();
-  syncAttendanceForm();
 });
 
-attendanceMember.addEventListener("change", syncAttendanceForm);
+attendanceViewButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    activeAttendanceView = button.dataset.attendanceView;
+    attendanceViewButtons.forEach((item) =>
+      item.classList.toggle("is-active", item === button),
+    );
+    renderAttendanceBoard();
+  });
+});
 
 attendanceTeamCode.addEventListener("change", async () => {
   rememberTeamCode();
+  if (Object.keys(attendanceDraft).length || !attendanceClient) {
+    return;
+  }
   await loadAttendanceRecords();
   syncAttendanceForm();
 });
@@ -602,21 +884,31 @@ attendanceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!attendanceForm.reportValidity()) return;
 
-  const status = attendanceForm.querySelector("input[name='attendanceStatus']:checked").value;
-  const record = {
-    event_id: attendanceEvent.value,
-    member_id: String(attendanceMember.value),
-    status,
-    comment: attendanceComment.value.trim(),
-    updated_at: new Date().toISOString(),
-  };
+  const selectedEntries = Object.entries(attendanceDraft);
+  if (!selectedEntries.length) {
+    setAttendanceState("候補日を選択してください。", "error");
+    return;
+  }
 
   rememberTeamCode();
   setAttendanceState("保存中...", "muted");
-  const result = await saveAttendance(record);
-  if (!result.ok) {
-    setAttendanceState(result.message || "保存に失敗しました。", "error");
-    return;
+  for (const [candidateId, status] of selectedEntries) {
+    const record = {
+      event_id: candidateId,
+      member_id: String(attendanceMember.value),
+      status,
+      comment: attendanceComment.value.trim(),
+      updated_at: new Date().toISOString(),
+    };
+    const result = await saveAttendance(record, { reload: false });
+    if (!result.ok) {
+      setAttendanceState(result.message || "保存に失敗しました。", "error");
+      return;
+    }
+  }
+
+  if (attendanceClient) {
+    await loadAttendanceRecords();
   }
 
   setAttendanceState("保存しました。", "success");
