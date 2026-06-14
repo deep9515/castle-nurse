@@ -23,6 +23,7 @@
       </a>
       <nav class="nav-links" aria-label="ページ内リンク">
         <a href="#schedule">日程</a>
+        <a href="#attendance">出欠</a>
         <a href="#members">メンバー</a>
         <a href="#ground">グラウンド</a>
         <a href="#results">結果</a>
@@ -114,6 +115,79 @@
             </thead>
             <tbody id="scheduleRows"></tbody>
           </table>
+        </div>
+      </section>
+
+      <section class="section attendance-section" id="attendance">
+        <div class="section-heading">
+          <p>Attendance</p>
+          <h2>出欠調整</h2>
+        </div>
+        <div class="attendance-layout">
+          <form class="attendance-form" id="attendanceForm">
+            <div class="attendance-form-head">
+              <div>
+                <p class="panel-label">Member Status</p>
+                <h3>予定ごとの出欠</h3>
+              </div>
+              <span class="attendance-mode" id="attendanceMode">Local</span>
+            </div>
+            <label>
+              <span>予定</span>
+              <select id="attendanceEvent" name="event"></select>
+            </label>
+            <label>
+              <span>メンバー</span>
+              <select id="attendanceMember" name="member" required></select>
+            </label>
+            <fieldset class="status-picker">
+              <legend>出欠</legend>
+              <label>
+                <input type="radio" name="attendanceStatus" value="attending" checked />
+                <span>参加</span>
+              </label>
+              <label>
+                <input type="radio" name="attendanceStatus" value="pending" />
+                <span>未定</span>
+              </label>
+              <label>
+                <input type="radio" name="attendanceStatus" value="absent" />
+                <span>不参加</span>
+              </label>
+            </fieldset>
+            <label>
+              <span>メモ</span>
+              <input
+                id="attendanceComment"
+                name="comment"
+                type="text"
+                maxlength="60"
+                placeholder="例: 30分遅れます"
+              />
+            </label>
+            <label>
+              <span>チームコード</span>
+              <input
+                id="attendanceTeamCode"
+                name="teamCode"
+                type="password"
+                autocomplete="current-password"
+                placeholder="共有コード"
+              />
+            </label>
+            <button class="attendance-submit" type="submit">出欠を保存</button>
+            <p class="save-state" id="attendanceSaveState" role="status"></p>
+          </form>
+          <aside class="attendance-board">
+            <div class="attendance-board-head">
+              <div>
+                <p class="panel-label">Summary</p>
+                <h3 id="attendanceBoardTitle">-</h3>
+              </div>
+            </div>
+            <div class="attendance-counts" id="attendanceCounts"></div>
+            <div class="attendance-list" id="attendanceRows"></div>
+          </aside>
         </div>
       </section>
 
@@ -292,6 +366,8 @@
       <a href="#top">トップへ戻る</a>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./attendance-config.js"></script>
     <script src="./script.js"></script>
   </body>
 </html>
