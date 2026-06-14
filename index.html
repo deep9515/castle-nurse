@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>キャッスルナース | CASTLE NURSE Baseball Team</title>
+    <meta
+      name="description"
+      content="キャッスルナース（CASTLE NURSE）の試合日程、メンバー一覧、試合結果を見られるチーム公式サイト。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="トップへ">
+        <img
+          class="brand-logo"
+          src="./assets/team-logo-uniform.jpg"
+          alt=""
+          aria-hidden="true"
+        />
+        <span>CASTLE NURSE</span>
+      </a>
+      <nav class="nav-links" aria-label="ページ内リンク">
+        <a href="#schedule">日程</a>
+        <a href="#members">メンバー</a>
+        <a href="#ground">グラウンド</a>
+        <a href="#results">結果</a>
+        <a href="#contact">試合希望</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <img
+          class="hero-image"
+          src="./assets/hero-baseball.jpg"
+          alt="夕方の野球場に置かれたグローブ、バット、ボール"
+        />
+        <div class="hero-overlay" aria-hidden="true"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Community Baseball Club</p>
+          <h1>
+            <span>次の一球で、</span>
+            <span>流れを変える。</span>
+          </h1>
+          <p class="hero-copy">
+            試合日程、出場メンバー、直近の試合結果をひとつにまとめた
+            チーム運営用ホームページ。
+          </p>
+        </div>
+        <aside class="next-game" aria-label="次の試合">
+          <p class="panel-label">Next Schedule</p>
+          <h2 id="nextGameTitle">読み込み中</h2>
+          <dl>
+            <div>
+              <dt>日時</dt>
+              <dd id="nextGameDate">-</dd>
+            </div>
+            <div>
+              <dt>球場</dt>
+              <dd id="nextGameVenue">-</dd>
+            </div>
+            <div>
+              <dt>相手/内容</dt>
+              <dd id="nextGameOpponent">-</dd>
+            </div>
+          </dl>
+        </aside>
+      </section>
+
+      <section class="quick-stats" aria-label="チーム成績サマリー">
+        <article>
+          <span id="seasonRecord">-</span>
+          <p>今季成績</p>
+        </article>
+        <article>
+          <span id="winRate">-</span>
+          <p>勝率</p>
+        </article>
+        <article>
+          <span id="memberCount">-</span>
+          <p>登録メンバー</p>
+        </article>
+        <article>
+          <span id="nextMonthGames">-</span>
+          <p>今後30日の予定</p>
+        </article>
+      </section>
+
+      <section class="section schedule-section" id="schedule">
+        <div class="section-heading">
+          <p>Schedule</p>
+          <h2>試合・練習日程</h2>
+        </div>
+        <div class="toolbar" aria-label="日程フィルター">
+          <button class="segmented is-active" type="button" data-schedule-filter="all">すべて</button>
+          <button class="segmented" type="button" data-schedule-filter="home">ホーム</button>
+          <button class="segmented" type="button" data-schedule-filter="away">ビジター</button>
+          <button class="segmented" type="button" data-schedule-filter="tournament">大会</button>
+          <button class="segmented" type="button" data-schedule-filter="practice">練習</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th>
+                <th>開始</th>
+                <th>相手/内容</th>
+                <th>場所</th>
+                <th>種別</th>
+                <th>集合</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section members-section" id="members">
+        <div class="section-heading">
+          <p>Roster</p>
+          <h2>メンバー一覧</h2>
+        </div>
+        <div class="toolbar split">
+          <div class="position-tabs" aria-label="ポジションフィルター">
+            <button class="segmented is-active" type="button" data-position-filter="all">全員</button>
+            <button class="segmented" type="button" data-position-filter="投手">投手</button>
+            <button class="segmented" type="button" data-position-filter="捕手">捕手</button>
+            <button class="segmented" type="button" data-position-filter="内野手">内野手</button>
+            <button class="segmented" type="button" data-position-filter="外野手">外野手</button>
+          </div>
+          <label class="search-box">
+            <span>検索</span>
+            <input id="memberSearch" type="search" placeholder="名前・背番号" />
+          </label>
+        </div>
+        <div class="member-grid" id="memberGrid"></div>
+      </section>
+
+      <section class="section ground-section" id="ground">
+        <div class="section-heading">
+          <p>Home Ground</p>
+          <h2>メイングラウンド</h2>
+        </div>
+        <div class="ground-layout">
+          <article class="ground-card">
+            <p class="panel-label">Main Field</p>
+            <h3>錦糸公園野球場</h3>
+            <p>
+              墨田区・錦糸町エリアを拠点に活動。
+              ホームゲームと練習の中心グラウンドとして利用します。
+            </p>
+            <a
+              class="ground-link"
+              href="https://www.city.sumida.lg.jp/kurashi/sports/shisetsu-info/kinshikoenkyogijyo.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              墨田区公式ページを見る
+            </a>
+          </article>
+          <div class="ground-facts" aria-label="錦糸公園野球場メモ">
+            <article>
+              <span>A / B</span>
+              <p>野球場A面・B面</p>
+            </article>
+            <article>
+              <span>7日前</span>
+              <p>条件付き予約開始</p>
+            </article>
+            <article>
+              <span>2h</span>
+              <p>一般貸出の基本単位</p>
+            </article>
+          </div>
+        </div>
+        <article class="practice-card" aria-label="練習場イメージ">
+          <div class="practice-media">
+            <img
+              class="practice-main"
+              src="./assets/practice/spo-dori-field.jpg"
+              alt="スポドリの屋内レンタルフィールド全景"
+            />
+            <img
+              class="practice-sub"
+              src="./assets/practice/spo-dori-training.jpg"
+              alt="スポドリの屋内フィールドで練習する様子"
+            />
+          </div>
+          <div class="practice-copy">
+            <p class="panel-label">Practice Field Image</p>
+            <h3>
+              <span>スポドリ！</span>
+              <span>レンタルフィールド</span>
+            </h3>
+            <p>
+              6/28の練習予定に合わせて、後楽園の屋内フィールドも練習場イメージとして掲載。
+              人工芝の広いスペースで、守備・投球・基礎練を組みやすい環境です。
+            </p>
+            <div class="practice-facts" aria-label="スポドリ練習場メモ">
+              <span>屋内</span>
+              <span>約340m²</span>
+              <span>東京ドームシティ</span>
+            </div>
+            <a
+              class="ground-link"
+              href="https://www.tokyo-dome.co.jp/spo-dori/rental/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              スポドリ公式ページを見る
+            </a>
+          </div>
+        </article>
+      </section>
+
+      <section class="section results-section" id="results">
+        <div class="section-heading">
+          <p>Results</p>
+          <h2>試合結果</h2>
+        </div>
+        <div class="result-layout">
+          <div class="result-list" id="resultList"></div>
+          <aside class="result-summary">
+            <p class="panel-label">Game Summary</p>
+            <img class="summary-photo" id="latestResultImage" src="" alt="" />
+            <h3 id="latestResultTitle">-</h3>
+            <p id="latestResultText">-</p>
+            <div class="score-board">
+              <span id="latestOurScore">0</span>
+              <small>-</small>
+              <span id="latestOppScore">0</span>
+            </div>
+            <ul class="summary-points" id="latestResultPoints"></ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section contact-section" id="contact">
+        <div class="section-heading">
+          <p>Contact</p>
+          <h2>試合希望</h2>
+        </div>
+        <div class="contact-layout">
+          <article class="contact-panel">
+            <p class="panel-label">Game Request</p>
+            <h3>対戦のお誘いはこちらまで</h3>
+            <p>
+              練習試合・合同練習のご相談は、フォーム入力後にメール作成画面が開きます。
+              内容を確認して送信してください。
+            </p>
+          </article>
+          <form class="contact-form" id="contactForm">
+            <label>
+              <span>チーム名</span>
+              <input id="contactTeam" name="team" type="text" placeholder="例: 墨田サンダース" required />
+            </label>
+            <label>
+              <span>担当者名</span>
+              <input id="contactName" name="name" type="text" placeholder="例: 山田" required />
+            </label>
+            <label>
+              <span>返信先メール</span>
+              <input id="contactEmail" name="email" type="email" placeholder="example@example.com" required />
+            </label>
+            <label>
+              <span>希望日（任意）</span>
+              <input id="contactDate" name="date" type="date" />
+            </label>
+            <label>
+              <span>希望場所</span>
+              <input id="contactVenue" name="venue" type="text" placeholder="例: 錦糸公園野球場" />
+            </label>
+            <label class="wide">
+              <span>内容</span>
+              <textarea
+                id="contactMessage"
+                name="message"
+                rows="6"
+                placeholder="試合時間、人数、レベル感、その他相談したいこと"
+              ></textarea>
+            </label>
+            <button class="contact-submit" type="submit">試合希望メールを作成</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>キャッスルナース / CASTLE NURSE</p>
+      <a href="#top">トップへ戻る</a>
+    </footer>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
