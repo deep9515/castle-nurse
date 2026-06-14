@@ -19,7 +19,7 @@ const members = [
   {
     number: 1,
     name: "ユウキ",
-    position: "未確認",
+    position: "内野手",
     bats: "右投左打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/yuki.jpg",
@@ -43,7 +43,7 @@ const members = [
   {
     number: 11,
     name: "ハギシタ",
-    position: "外野手",
+    position: "投手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/hagishita.jpg",
