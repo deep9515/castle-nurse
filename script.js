@@ -33,103 +33,44 @@ const schedule = [
 const members = [
   {
     id: "masa-fujiki",
-    order: 1,
     number: 0,
-    name: "masa fujiki",
+    name: "マサ",
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/masa.jpg",
   },
   {
-    id: "takafumi",
-    order: 2,
-    name: "Takafumi",
-    position: "メンバー",
-  },
-  {
-    id: "kaneko-tetsuya",
-    order: 3,
-    number: 4,
-    name: "かねこ てつや",
-    position: "内野手",
-    bats: "右投右打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/kaneko.jpg",
-  },
-  {
-    id: "kotaro",
-    order: 4,
-    name: "こうたろう",
-    position: "メンバー",
-  },
-  {
-    id: "matsumura-kazuki",
-    order: 5,
-    name: "まつむらかずき",
-    position: "メンバー",
-  },
-  {
-    id: "inoue-takahiro",
-    order: 6,
-    name: "井上嵩大",
-    position: "メンバー",
-  },
-  {
-    id: "yamada-takumi",
-    order: 7,
-    number: 2,
-    name: "山田 巧",
-    position: "内野手",
-    bats: "右投左打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/yamada.jpg",
-  },
-  {
-    id: "kawanabe-en",
-    order: 8,
-    name: "川鍋 援",
-    position: "メンバー",
-  },
-  {
-    id: "hirano-kei",
-    order: 9,
-    name: "平野景",
-    position: "メンバー",
-  },
-  {
-    id: "yuto",
-    order: 10,
+    id: "yuki",
     number: 1,
-    name: "悠人",
+    name: "ユウキ",
     position: "内野手",
     bats: "右投左打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/yuki.jpg",
   },
   {
-    id: "hayakawa-yoshiya",
-    order: 11,
-    name: "早川 善哉",
-    position: "メンバー",
+    id: "yamada-takumi",
+    number: 2,
+    name: "ヤマダ",
+    position: "内野手",
+    bats: "右投左打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/yamada.jpg",
   },
   {
-    id: "hayashi-sojiro",
-    order: 12,
-    name: "林 蒼二郎",
-    position: "メンバー",
-  },
-  {
-    id: "nagamine-hitoshi",
-    order: 13,
-    name: "永嶺 仁志",
-    position: "メンバー",
+    id: "kaneko-tetsuya",
+    number: 4,
+    name: "カネコ",
+    position: "内野手",
+    bats: "右投右打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/kaneko.jpg",
   },
   {
     id: "ukishima-sho",
-    order: 14,
     number: 5,
-    name: "浮島 翔",
+    name: "ウキシマ",
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
@@ -137,24 +78,86 @@ const members = [
   },
   {
     id: "hagishita-ryuichi",
-    order: 15,
     number: 11,
-    name: "萩下 龍一",
+    name: "ハギシタ",
     position: "投手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/hagishita.jpg",
+  },
+  {
+    id: "hayashi-sojiro",
+    number: 17,
+    name: "ディルバート",
+    position: "内野手",
+    bats: "右投右打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/dirbato.jpg",
+  },
+  {
+    id: "takafumi",
+    order: 101,
+    name: "Takafumi",
+    position: "メンバー",
+  },
+  {
+    id: "kotaro",
+    order: 102,
+    name: "こうたろう",
+    position: "メンバー",
+  },
+  {
+    id: "matsumura-kazuki",
+    order: 103,
+    name: "まつむら",
+    position: "メンバー",
+  },
+  {
+    id: "inoue-takahiro",
+    order: 104,
+    name: "井上",
+    position: "メンバー",
+  },
+  {
+    id: "kawanabe-en",
+    order: 105,
+    name: "川鍋",
+    position: "メンバー",
+  },
+  {
+    id: "hirano-kei",
+    order: 106,
+    name: "平野",
+    position: "メンバー",
+  },
+  {
+    id: "yuto",
+    order: 107,
+    name: "悠人",
+    position: "メンバー",
+  },
+  {
+    id: "hayakawa-yoshiya",
+    order: 108,
+    name: "早川",
+    position: "メンバー",
+  },
+  {
+    id: "nagamine-hitoshi",
+    order: 109,
+    name: "永嶺",
+    position: "メンバー",
   },
 ];
 
 const results = [
   {
     date: "2026-05-31",
-    opponent: "アウェイゲーム",
-    venue: "アウェイ",
+    opponent: "モジュラーズ",
+    venue: "小豆沢公園",
     ourScore: 4,
     opponentScore: 7,
-    note: "序盤の大量失点から中盤に4点を返すも、3点差で敗戦。",
+    note: "小豆沢公園でのVSモジュラーズ戦。序盤の大量失点から中盤に4点を返すも、3点差で敗戦。",
     summary:
       "序盤に大量失点を許し、試合の主導権を相手に握られる苦しい立ち上がり。それでも中盤、相手投手の制球の乱れを逃さず、四球とつなぐ意識で一気に4点を奪い返した。守備でも粘り強く立て直し、終盤にかけて攻勢を強める展開へ。あと一歩で流れを引き寄せるところまで迫ったが、序盤のビハインドを返し切れず、最終的には4-7の3点差で試合終了。敗戦の中にも、集中力を切らさず追い上げた収穫のある一戦となった。",
     highlights: ["中盤に一挙4得点", "相手投手の乱れを逃さず出塁", "終盤まで攻勢を強めた粘り"],
@@ -323,7 +326,13 @@ function scheduleTitle(game) {
 function sortedMembers() {
   return members
     .slice()
-    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, "ja"));
+    .sort((a, b) => {
+      const aIsCn = a.number == null;
+      const bIsCn = b.number == null;
+      if (aIsCn !== bIsCn) return aIsCn ? 1 : -1;
+      if (!aIsCn && !bIsCn) return a.number - b.number;
+      return (a.order || 999) - (b.order || 999) || a.name.localeCompare(b.name, "ja");
+    });
 }
 
 function memberId(member) {
@@ -379,12 +388,19 @@ function getCell(row, index) {
 
 function formatSheetDate(value) {
   const raw = String(value || "");
-  const match = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
-  if (!match) return raw;
-  const year = Number(match[1]);
-  const month = Number(match[2]) + 1;
-  const day = Number(match[3]);
+  const gvizMatch = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+  const japaneseMatch = raw.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日$/);
+  if (!gvizMatch && !japaneseMatch) return raw;
+  const year = Number((gvizMatch || japaneseMatch)[1]);
+  const month = gvizMatch ? Number(gvizMatch[2]) + 1 : Number(japaneseMatch[2]);
+  const day = Number((gvizMatch || japaneseMatch)[3]);
   return `${year}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`;
+}
+
+function parseDateForCompare(value) {
+  const match = String(value || "").match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (!match) return null;
+  return new Date(`${match[1]}-${match[2]}-${match[3]}T00:00:00+09:00`);
 }
 
 function findSheetColumn(columns, predicate) {
@@ -433,6 +449,8 @@ function parseGoogleSheetTable(table) {
         }))
       : [];
 
+  const today = new Date(`${team.today}T00:00:00+09:00`);
+
   return (table.rows || [])
     .map((row) => {
       const attendance = memberColumns
@@ -461,7 +479,10 @@ function parseGoogleSheetTable(table) {
         counts,
       };
     })
-    .filter((item) => item.date && item.type);
+    .filter((item) => {
+      const date = parseDateForCompare(item.date);
+      return item.date && item.type && (!date || date >= today);
+    });
 }
 
 function renderGoogleSheetPanel(items) {
@@ -480,6 +501,12 @@ function renderGoogleSheetPanel(items) {
       const typeKey = String(item.type).includes("試合") ? "away" : "practice";
       const yesMembers = item.attendance
         .filter((entry) => entry.status === "yes")
+        .map((entry) => entry.name);
+      const maybeMembers = item.attendance
+        .filter((entry) => entry.status === "maybe")
+        .map((entry) => entry.name);
+      const noMembers = item.attendance
+        .filter((entry) => entry.status === "no")
         .map((entry) => entry.name);
       return `
         <article class="sheet-card">
@@ -517,9 +544,11 @@ function renderGoogleSheetPanel(items) {
             <span class="maybe">${sheetStatusLabel("maybe")} ${item.counts.maybe}</span>
             <span class="no">${sheetStatusLabel("no")} ${item.counts.no}</span>
           </div>
-          <p class="sheet-members">${
-            yesMembers.length ? `参加: ${escapeHtml(yesMembers.join("、"))}` : "参加者未入力"
-          }</p>
+          <div class="sheet-members">
+            <p class="yes">参加: ${yesMembers.length ? escapeHtml(yesMembers.join("、")) : "未入力"}</p>
+            <p class="maybe">未定: ${maybeMembers.length ? escapeHtml(maybeMembers.join("、")) : "なし"}</p>
+            <p class="no">不参加: ${noMembers.length ? escapeHtml(noMembers.join("、")) : "なし"}</p>
+          </div>
         </article>
       `;
     })
@@ -940,7 +969,7 @@ function renderAttendanceRanking() {
 
 function renderAttendanceBoard() {
   if (!attendanceForm) return;
-  attendanceBoardTitle.textContent = "7月候補";
+  attendanceBoardTitle.textContent = "練習候補";
   renderAttendanceCounts();
 
   if (activeAttendanceView === "matrix") {
@@ -1012,7 +1041,7 @@ function renderResults() {
       const status = resultStatus(result);
       const title = result.opponent.includes("ゲーム")
         ? result.opponent
-        : `vs ${result.opponent}`;
+        : `VS ${result.opponent}`;
       const photo = result.photo
         ? `<img class="result-photo" src="${result.photo}" alt="${formatDate(result.date)}の試合写真" loading="lazy" />`
         : "";
@@ -1033,7 +1062,7 @@ function renderResults() {
   const latest = results[0];
   document.querySelector("#latestResultTitle").textContent = latest.opponent.includes("ゲーム")
     ? latest.opponent
-    : `vs ${latest.opponent}`;
+    : `VS ${latest.opponent}`;
   document.querySelector("#latestResultText").textContent = latest.summary || latest.note;
   document.querySelector("#latestOurScore").textContent = latest.ourScore;
   document.querySelector("#latestOppScore").textContent = latest.opponentScore;
