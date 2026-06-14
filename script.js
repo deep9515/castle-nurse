@@ -17,20 +17,20 @@ const schedule = [
 
 const members = [
   {
-    number: 1,
-    name: "ユウキ",
-    position: "内野手",
-    bats: "右投左打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/yuki.jpg",
-  },
-  {
     number: 0,
     name: "マサ",
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/masa.jpg",
+  },
+  {
+    number: 1,
+    name: "ユウキ",
+    position: "内野手",
+    bats: "右投左打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/yuki.jpg",
   },
   {
     number: 2,
@@ -146,6 +146,8 @@ function renderSchedule(filter = "all") {
 function renderMembers(position = "all", query = "") {
   const normalizedQuery = query.trim().toLowerCase();
   const cards = members
+    .slice()
+    .sort((a, b) => a.number - b.number || a.name.localeCompare(b.name, "ja"))
     .filter((member) => position === "all" || member.position === position)
     .filter((member) => {
       if (!normalizedQuery) return true;
