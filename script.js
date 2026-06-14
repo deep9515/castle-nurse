@@ -24,6 +24,14 @@ const members = [
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/dirbato.jpg",
   },
+  {
+    number: 81,
+    name: "イヨリ",
+    position: "内野手",
+    bats: "投打未確認",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/iyori.jpg",
+  },
 ];
 
 const results = [
