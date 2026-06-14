@@ -8,7 +8,8 @@
       name="description"
       content="キャッスルナース（CASTLE NURSE）の試合日程、メンバー一覧、試合結果を見られるチーム公式サイト。"
     />
-    <link rel="stylesheet" href="./styles.css?v=20260614-result-sheet" />
+    <link rel="icon" href="./assets/team-logo-uniform.jpg" />
+    <link rel="stylesheet" href="./styles.css?v=20260614-practice-sheet" />
   </head>
   <body>
     <header class="site-header">
@@ -120,7 +121,7 @@
           <div class="sheet-panel-head">
             <div>
               <p class="panel-label">Google Sheets</p>
-              <h3>外部シート連携</h3>
+              <h3>参加予定メンバー一覧</h3>
             </div>
             <a
               class="sheet-link"
@@ -141,59 +142,24 @@
           <p>Attendance</p>
           <h2>練習日調整</h2>
         </div>
-        <div class="attendance-layout">
-          <form class="attendance-form" id="attendanceForm">
-            <div class="attendance-form-head">
-              <div>
-                <p class="panel-label">Availability</p>
-                <h3>金夜・土日の候補</h3>
-              </div>
-              <span class="attendance-mode" id="attendanceMode">Local</span>
+        <article class="sheet-panel practice-sheet-panel" aria-label="練習日調整シート連携">
+          <div class="sheet-panel-head">
+            <div>
+              <p class="panel-label">Practice Availability</p>
+              <h3>Googleシートで練習日を調整</h3>
             </div>
-            <label>
-              <span>メンバー</span>
-              <select id="attendanceMember" name="member" required></select>
-            </label>
-            <div class="candidate-picker" id="attendanceCandidateGrid"></div>
-            <label>
-              <span>メモ</span>
-              <input
-                id="attendanceComment"
-                name="comment"
-                type="text"
-                maxlength="60"
-                placeholder="例: 金曜は20時以降なら可"
-              />
-            </label>
-            <label>
-              <span>チームコード</span>
-              <input
-                id="attendanceTeamCode"
-                name="teamCode"
-                type="password"
-                autocomplete="current-password"
-                placeholder="共有コード"
-              />
-            </label>
-            <button class="attendance-submit" type="submit">練習候補を保存</button>
-            <p class="save-state" id="attendanceSaveState" role="status"></p>
-          </form>
-          <aside class="attendance-board">
-            <div class="attendance-board-head">
-              <div>
-                <p class="panel-label">Summary</p>
-                <h3 id="attendanceBoardTitle">7月候補</h3>
-              </div>
-            </div>
-            <div class="attendance-view-tabs" aria-label="出欠表示切り替え">
-              <button class="segmented is-active" type="button" data-attendance-view="cards">カード</button>
-              <button class="segmented" type="button" data-attendance-view="matrix">一覧表</button>
-              <button class="segmented" type="button" data-attendance-view="ranking">おすすめ</button>
-            </div>
-            <div class="attendance-counts" id="attendanceCounts"></div>
-            <div class="attendance-list" id="attendanceRows"></div>
-          </aside>
-        </div>
+            <a
+              class="sheet-link"
+              href="https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=265488796#gid=265488796"
+              target="_blank"
+              rel="noreferrer"
+            >
+              調整シートを開く
+            </a>
+          </div>
+          <p class="sheet-status" id="practiceSheetStatus" role="status">読み込み中...</p>
+          <div class="sheet-list practice-sheet-list" id="practiceSheetList"></div>
+        </article>
       </section>
 
       <section class="section members-section" id="members">
@@ -371,8 +337,6 @@
       <a href="#top">トップへ戻る</a>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./attendance-config.js?v=20260614-result-sheet"></script>
-    <script src="./script.js?v=20260614-result-sheet"></script>
+    <script src="./script.js?v=20260614-practice-sheet"></script>
   </body>
 </html>

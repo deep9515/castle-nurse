@@ -218,8 +218,8 @@ h1 span {
 }
 
 .quick-stats article {
-  min-height: 118px;
-  padding: 22px clamp(16px, 4vw, 42px);
+  min-height: 76px;
+  padding: 14px clamp(14px, 3vw, 28px);
   border-right: 1px solid var(--line);
 }
 
@@ -229,9 +229,9 @@ h1 span {
 
 .quick-stats span {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   color: var(--navy);
-  font-size: clamp(28px, 4vw, 48px);
+  font-size: clamp(22px, 3vw, 34px);
   font-weight: 950;
   line-height: 1;
 }
@@ -239,6 +239,7 @@ h1 span {
 .quick-stats p {
   margin: 0;
   color: var(--muted);
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -616,7 +617,7 @@ tbody tr:last-child td {
 .sheet-card time {
   display: block;
   color: var(--navy);
-  font-size: 21px;
+  font-size: clamp(24px, 3vw, 31px);
   font-weight: 950;
   line-height: 1.2;
 }
@@ -628,6 +629,10 @@ tbody tr:last-child td {
 
 .sheet-card .tag {
   flex: 0 0 auto;
+  padding: 8px 12px;
+  font-size: 15px;
+  font-weight: 950;
+  box-shadow: inset 0 -2px 0 rgba(23, 33, 28, 0.14);
 }
 
 .sheet-meta {
@@ -1650,12 +1655,15 @@ tbody tr:last-child td {
     font-size: 24px;
   }
 
-  .quick-stats,
   .ground-facts,
   .sheet-list,
   .attendance-counts,
   .member-grid {
     grid-template-columns: 1fr;
+  }
+
+  .quick-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sheet-panel-head,
@@ -1693,12 +1701,27 @@ tbody tr:last-child td {
   }
 
   .quick-stats article {
-    border-right: 0;
+    min-height: 56px;
+    padding: 10px 12px;
+    border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
   }
 
-  .quick-stats article:last-child {
+  .quick-stats article:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .quick-stats article:nth-last-child(-n + 2) {
     border-bottom: 0;
+  }
+
+  .quick-stats span {
+    margin-bottom: 2px;
+    font-size: 19px;
+  }
+
+  .quick-stats p {
+    font-size: 11px;
   }
 
   .section-heading,

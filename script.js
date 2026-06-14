@@ -10,6 +10,12 @@ const googleSheet = {
   url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=775258869#gid=775258869",
 };
 
+const practiceSheet = {
+  id: "1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw",
+  gid: "265488796",
+  url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=265488796#gid=265488796",
+};
+
 const schedule = [
   {
     date: "2026-06-28",
@@ -89,10 +95,19 @@ const members = [
     id: "hayashi-sojiro",
     number: 17,
     name: "ディルバート",
-    position: "内野手",
+    position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/dirbato.jpg",
+  },
+  {
+    id: "iyori",
+    number: 81,
+    name: "イヨリ",
+    position: "内野手",
+    bats: "右投右打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/iyori.jpg",
   },
   {
     id: "takafumi",
@@ -286,6 +301,8 @@ const attendanceCandidates = [
 const scheduleRows = document.querySelector("#scheduleRows");
 const sheetStatus = document.querySelector("#sheetStatus");
 const sheetScheduleList = document.querySelector("#sheetScheduleList");
+const practiceSheetStatus = document.querySelector("#practiceSheetStatus");
+const practiceSheetList = document.querySelector("#practiceSheetList");
 const memberGrid = document.querySelector("#memberGrid");
 const resultList = document.querySelector("#resultList");
 const memberSearch = document.querySelector("#memberSearch");
@@ -555,7 +572,101 @@ function renderGoogleSheetPanel(items) {
     .join("");
 }
 
-function loadGoogleSheetJsonp() {
+function parsePracticeSheetTable(table) {
+  const columns = table.cols || [];
+  const weekdayIndex = findSheetColumn(columns, (label) => label.includes("曜日"));
+  const dateIndex = findSheetColumn(columns, (label) => label.includes("月日"));
+  const memberStartIndex = dateIndex >= 0 ? dateIndex + 1 : 2;
+  const today = new Date(`${team.today}T00:00:00+09:00`);
+
+  return (table.rows || [])
+    .map((row) => {
+      const attendance = columns
+        .slice(memberStartIndex)
+        .map((column, offset) => ({
+          name: String(column.label || "").trim(),
+          status: normalizeSheetStatus(getCell(row, memberStartIndex + offset)),
+        }))
+        .filter((item) => item.name && item.status);
+      const counts = attendance.reduce(
+        (result, item) => ({
+          ...result,
+          [item.status]: result[item.status] + 1,
+        }),
+        { yes: 0, maybe: 0, no: 0 },
+      );
+      return {
+        weekday: getCell(row, weekdayIndex),
+        date: formatSheetDate(getCell(row, dateIndex)),
+        attendance,
+        counts,
+      };
+    })
+    .filter((item) => {
+      const date = parseDateForCompare(item.date);
+      return item.date && (!date || date >= today);
+    });
+}
+
+function renderPracticeSheetPanel(items) {
+  if (!practiceSheetStatus || !practiceSheetList) return;
+  if (!items.length) {
+    practiceSheetStatus.textContent = "表示できる練習候補がありません。";
+    practiceSheetList.innerHTML = "";
+    return;
+  }
+
+  const rankedItems = items.slice().sort((a, b) => {
+    const aTime = parseDateForCompare(a.date)?.getTime() || Number.MAX_SAFE_INTEGER;
+    const bTime = parseDateForCompare(b.date)?.getTime() || Number.MAX_SAFE_INTEGER;
+    return (
+      b.counts.yes - a.counts.yes ||
+      b.counts.maybe - a.counts.maybe ||
+      a.counts.no - b.counts.no ||
+      aTime - bTime
+    );
+  });
+
+  const visibleItems = rankedItems.slice(0, 3);
+  practiceSheetStatus.textContent = `参加最多TOP3を表示中（${visibleItems.length}/${items.length}候補）`;
+  practiceSheetStatus.dataset.tone = "ok";
+  practiceSheetList.innerHTML = visibleItems
+    .map((item, index) => {
+      const yesMembers = item.attendance
+        .filter((entry) => entry.status === "yes")
+        .map((entry) => entry.name);
+      const maybeMembers = item.attendance
+        .filter((entry) => entry.status === "maybe")
+        .map((entry) => entry.name);
+      const noMembers = item.attendance
+        .filter((entry) => entry.status === "no")
+        .map((entry) => entry.name);
+      return `
+        <article class="sheet-card practice-sheet-card">
+          <div class="sheet-card-head">
+            <div>
+              <time>${escapeHtml(item.date)}</time>
+              <small>${escapeHtml(item.weekday || "")}</small>
+            </div>
+            <span class="tag practice">TOP${index + 1}</span>
+          </div>
+          <div class="sheet-attendance" aria-label="練習日調整集計">
+            <span class="yes">${sheetStatusLabel("yes")} ${item.counts.yes}</span>
+            <span class="maybe">${sheetStatusLabel("maybe")} ${item.counts.maybe}</span>
+            <span class="no">${sheetStatusLabel("no")} ${item.counts.no}</span>
+          </div>
+          <div class="sheet-members">
+            <p class="yes">参加: ${yesMembers.length ? escapeHtml(yesMembers.join("、")) : "未入力"}</p>
+            <p class="maybe">未定: ${maybeMembers.length ? escapeHtml(maybeMembers.join("、")) : "なし"}</p>
+            <p class="no">不参加: ${noMembers.length ? escapeHtml(noMembers.join("、")) : "なし"}</p>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function loadGoogleSheetJsonp(sheet = googleSheet) {
   return new Promise((resolve, reject) => {
     const callbackName = `castleNurseSheet_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const script = document.createElement("script");
@@ -579,7 +690,7 @@ function loadGoogleSheetJsonp() {
       cleanup();
       reject(new Error("Google Sheetsを読み込めませんでした。"));
     };
-    script.src = `https://docs.google.com/spreadsheets/d/${googleSheet.id}/gviz/tq?gid=${googleSheet.gid}&tqx=responseHandler:${callbackName}`;
+    script.src = `https://docs.google.com/spreadsheets/d/${sheet.id}/gviz/tq?gid=${sheet.gid}&tqx=responseHandler:${callbackName}`;
     document.body.appendChild(script);
   });
 }
@@ -594,6 +705,19 @@ async function initGoogleSheetPanel() {
     sheetStatus.textContent = "シートを読み込めませんでした。公開設定を確認してください。";
     sheetStatus.dataset.tone = "error";
     sheetScheduleList.innerHTML = "";
+  }
+}
+
+async function initPracticeSheetPanel() {
+  if (!practiceSheetStatus || !practiceSheetList) return;
+  try {
+    practiceSheetStatus.textContent = "読み込み中...";
+    const payload = await loadGoogleSheetJsonp(practiceSheet);
+    renderPracticeSheetPanel(parsePracticeSheetTable(payload.table || {}));
+  } catch (error) {
+    practiceSheetStatus.textContent = "調整シートを読み込めませんでした。公開設定を確認してください。";
+    practiceSheetStatus.dataset.tone = "error";
+    practiceSheetList.innerHTML = "";
   }
 }
 
@@ -1147,70 +1271,72 @@ memberSearch.addEventListener("input", () => {
   renderMembers(activePosition, memberSearch.value);
 });
 
-attendanceMember.addEventListener("change", syncAttendanceForm);
+if (attendanceForm && attendanceMember && attendanceCandidateGrid && attendanceTeamCode) {
+  attendanceMember.addEventListener("change", syncAttendanceForm);
 
-attendanceCandidateGrid.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-candidate-id][data-status]");
-  if (!button) return;
-  attendanceDraft[button.dataset.candidateId] = button.dataset.status;
-  renderCandidatePicker();
-  renderAttendanceBoard();
-});
-
-attendanceViewButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    activeAttendanceView = button.dataset.attendanceView;
-    attendanceViewButtons.forEach((item) =>
-      item.classList.toggle("is-active", item === button),
-    );
+  attendanceCandidateGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-candidate-id][data-status]");
+    if (!button) return;
+    attendanceDraft[button.dataset.candidateId] = button.dataset.status;
+    renderCandidatePicker();
     renderAttendanceBoard();
   });
-});
 
-attendanceTeamCode.addEventListener("change", async () => {
-  rememberTeamCode();
-  if (Object.keys(attendanceDraft).length || !attendanceClient) {
-    return;
-  }
-  await loadAttendanceRecords();
-  syncAttendanceForm();
-});
+  attendanceViewButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      activeAttendanceView = button.dataset.attendanceView;
+      attendanceViewButtons.forEach((item) =>
+        item.classList.toggle("is-active", item === button),
+      );
+      renderAttendanceBoard();
+    });
+  });
 
-attendanceForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!attendanceForm.reportValidity()) return;
-
-  const selectedEntries = Object.entries(attendanceDraft);
-  if (!selectedEntries.length) {
-    setAttendanceState("候補日を選択してください。", "error");
-    return;
-  }
-
-  rememberTeamCode();
-  setAttendanceState("保存中...", "muted");
-  for (const [candidateId, status] of selectedEntries) {
-    const record = {
-      event_id: candidateId,
-      member_id: String(attendanceMember.value),
-      status,
-      comment: attendanceComment.value.trim(),
-      updated_at: new Date().toISOString(),
-    };
-    const result = await saveAttendance(record, { reload: false });
-    if (!result.ok) {
-      setAttendanceState(result.message || "保存に失敗しました。", "error");
+  attendanceTeamCode.addEventListener("change", async () => {
+    rememberTeamCode();
+    if (Object.keys(attendanceDraft).length || !attendanceClient) {
       return;
     }
-  }
-
-  if (attendanceClient) {
     await loadAttendanceRecords();
-  }
+    syncAttendanceForm();
+  });
 
-  setAttendanceState("保存しました。", "success");
-  renderAttendanceBoard();
-  syncAttendanceForm();
-});
+  attendanceForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!attendanceForm.reportValidity()) return;
+
+    const selectedEntries = Object.entries(attendanceDraft);
+    if (!selectedEntries.length) {
+      setAttendanceState("候補日を選択してください。", "error");
+      return;
+    }
+
+    rememberTeamCode();
+    setAttendanceState("保存中...", "muted");
+    for (const [candidateId, status] of selectedEntries) {
+      const record = {
+        event_id: candidateId,
+        member_id: String(attendanceMember.value),
+        status,
+        comment: attendanceComment.value.trim(),
+        updated_at: new Date().toISOString(),
+      };
+      const result = await saveAttendance(record, { reload: false });
+      if (!result.ok) {
+        setAttendanceState(result.message || "保存に失敗しました。", "error");
+        return;
+      }
+    }
+
+    if (attendanceClient) {
+      await loadAttendanceRecords();
+    }
+
+    setAttendanceState("保存しました。", "success");
+    renderAttendanceBoard();
+    syncAttendanceForm();
+  });
+}
 
 contactForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -1231,5 +1357,8 @@ renderSummary();
 renderSchedule();
 renderMembers();
 renderResults();
-initAttendance();
+if (attendanceForm) {
+  initAttendance();
+}
 initGoogleSheetPanel();
+initPracticeSheetPanel();
