@@ -542,6 +542,160 @@ tbody tr:last-child td {
   color: var(--ink);
 }
 
+.sheet-panel {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: clamp(18px, 3vw, 28px);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.sheet-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.sheet-panel-head h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(25px, 4vw, 42px);
+  line-height: 1.08;
+}
+
+.sheet-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+  text-decoration: none;
+  background: var(--green);
+}
+
+.sheet-status {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.sheet-status[data-tone="error"] {
+  color: var(--clay);
+}
+
+.sheet-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sheet-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f9fbf7;
+}
+
+.sheet-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sheet-card time {
+  display: block;
+  color: var(--navy);
+  font-size: 21px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.sheet-card small {
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.sheet-card .tag {
+  flex: 0 0 auto;
+}
+
+.sheet-meta {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.sheet-meta div {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.sheet-meta dt,
+.sheet-meta dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sheet-meta dt {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.sheet-meta dd {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.sheet-attendance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sheet-attendance span {
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 950;
+  background: #edf1eb;
+}
+
+.sheet-attendance .yes {
+  color: #fff;
+  background: var(--green);
+}
+
+.sheet-attendance .maybe {
+  background: var(--gold);
+}
+
+.sheet-attendance .no {
+  color: #fff;
+  background: var(--clay);
+}
+
+.sheet-members {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
 .attendance-section {
   background:
     linear-gradient(135deg, rgba(242, 193, 78, 0.16), rgba(18, 51, 91, 0.08)),
@@ -1443,6 +1597,7 @@ tbody tr:last-child td {
 
   .quick-stats,
   .ground-facts,
+  .sheet-list,
   .attendance-counts,
   .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1478,9 +1633,15 @@ tbody tr:last-child td {
 
   .quick-stats,
   .ground-facts,
+  .sheet-list,
   .attendance-counts,
   .member-grid {
     grid-template-columns: 1fr;
+  }
+
+  .sheet-panel-head,
+  .sheet-card-head {
+    flex-direction: column;
   }
 
   .candidate-card,

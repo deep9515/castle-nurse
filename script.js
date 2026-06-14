@@ -4,6 +4,12 @@ const team = {
   mainGround: "錦糸公園野球場",
 };
 
+const googleSheet = {
+  id: "1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw",
+  gid: "775258869",
+  url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=775258869#gid=775258869",
+};
+
 const schedule = [
   {
     date: "2026-06-28",
@@ -26,68 +32,118 @@ const schedule = [
 
 const members = [
   {
+    id: "masa-fujiki",
+    order: 1,
     number: 0,
-    name: "マサ",
+    name: "masa fujiki",
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/masa.jpg",
   },
   {
-    number: 1,
-    name: "ユウキ",
-    position: "内野手",
-    bats: "右投左打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/yuki.jpg",
+    id: "takafumi",
+    order: 2,
+    name: "Takafumi",
+    position: "メンバー",
   },
   {
-    number: 2,
-    name: "ヤマダ",
-    position: "内野手",
-    bats: "右投左打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/yamada.jpg",
-  },
-  {
+    id: "kaneko-tetsuya",
+    order: 3,
     number: 4,
-    name: "カネコ",
+    name: "かねこ てつや",
     position: "内野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/kaneko.jpg",
   },
   {
+    id: "kotaro",
+    order: 4,
+    name: "こうたろう",
+    position: "メンバー",
+  },
+  {
+    id: "matsumura-kazuki",
+    order: 5,
+    name: "まつむらかずき",
+    position: "メンバー",
+  },
+  {
+    id: "inoue-takahiro",
+    order: 6,
+    name: "井上嵩大",
+    position: "メンバー",
+  },
+  {
+    id: "yamada-takumi",
+    order: 7,
+    number: 2,
+    name: "山田 巧",
+    position: "内野手",
+    bats: "右投左打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/yamada.jpg",
+  },
+  {
+    id: "kawanabe-en",
+    order: 8,
+    name: "川鍋 援",
+    position: "メンバー",
+  },
+  {
+    id: "hirano-kei",
+    order: 9,
+    name: "平野景",
+    position: "メンバー",
+  },
+  {
+    id: "yuto",
+    order: 10,
+    number: 1,
+    name: "悠人",
+    position: "内野手",
+    bats: "右投左打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/yuki.jpg",
+  },
+  {
+    id: "hayakawa-yoshiya",
+    order: 11,
+    name: "早川 善哉",
+    position: "メンバー",
+  },
+  {
+    id: "hayashi-sojiro",
+    order: 12,
+    name: "林 蒼二郎",
+    position: "メンバー",
+  },
+  {
+    id: "nagamine-hitoshi",
+    order: 13,
+    name: "永嶺 仁志",
+    position: "メンバー",
+  },
+  {
+    id: "ukishima-sho",
+    order: 14,
     number: 5,
-    name: "ウキシマ",
+    name: "浮島 翔",
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/ukishima.jpg",
   },
   {
+    id: "hagishita-ryuichi",
+    order: 15,
     number: 11,
-    name: "ハギシタ",
+    name: "萩下 龍一",
     position: "投手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/hagishita.jpg",
-  },
-  {
-    number: 17,
-    name: "ディルバート",
-    position: "内野手",
-    bats: "右投右打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/dirbato.jpg",
-  },
-  {
-    number: 81,
-    name: "イヨリ",
-    position: "内野手",
-    bats: "右投右打",
-    note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/iyori.jpg",
   },
 ];
 
@@ -225,6 +281,8 @@ const attendanceCandidates = [
 ];
 
 const scheduleRows = document.querySelector("#scheduleRows");
+const sheetStatus = document.querySelector("#sheetStatus");
+const sheetScheduleList = document.querySelector("#sheetScheduleList");
 const memberGrid = document.querySelector("#memberGrid");
 const resultList = document.querySelector("#resultList");
 const memberSearch = document.querySelector("#memberSearch");
@@ -265,7 +323,15 @@ function scheduleTitle(game) {
 function sortedMembers() {
   return members
     .slice()
-    .sort((a, b) => a.number - b.number || a.name.localeCompare(b.name, "ja"));
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name, "ja"));
+}
+
+function memberId(member) {
+  return member.id || String(member.number);
+}
+
+function displayMemberNumber(member) {
+  return member.number == null ? "CN" : String(member.number).padStart(2, "0");
 }
 
 function escapeHtml(value) {
@@ -301,13 +367,214 @@ function renderSchedule(filter = "all") {
   scheduleRows.innerHTML = rows;
 }
 
+function compactLabel(value) {
+  return String(value || "").replace(/\s+/g, "");
+}
+
+function getCell(row, index) {
+  const cell = row.c?.[index];
+  if (!cell) return "";
+  return cell.f || cell.v || "";
+}
+
+function formatSheetDate(value) {
+  const raw = String(value || "");
+  const match = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+  if (!match) return raw;
+  const year = Number(match[1]);
+  const month = Number(match[2]) + 1;
+  const day = Number(match[3]);
+  return `${year}/${String(month).padStart(2, "0")}/${String(day).padStart(2, "0")}`;
+}
+
+function findSheetColumn(columns, predicate) {
+  return columns.findIndex((column) => predicate(compactLabel(column.label), column.label));
+}
+
+function normalizeSheetStatus(value) {
+  const status = String(value || "").trim();
+  if (!status) return "";
+  if (/[○◯⭕]/.test(status)) return "yes";
+  if (/[△🔺]/.test(status)) return "maybe";
+  if (/[×✕✖❌xX]/.test(status)) return "no";
+  return "";
+}
+
+function sheetStatusLabel(status) {
+  if (status === "yes") return "⭕";
+  if (status === "maybe") return "🔺";
+  if (status === "no") return "×";
+  return "";
+}
+
+function parseGoogleSheetTable(table) {
+  const columns = table.cols || [];
+  const weekdayIndex = findSheetColumn(columns, (label) => label.includes("曜日"));
+  const dateIndex = findSheetColumn(columns, (label) => label.includes("月日"));
+  const typeIndex = findSheetColumn(columns, (label) => label.includes("練習") && label.includes("試合"));
+  const reserveIndex = findSheetColumn(columns, (label) => label.includes("グラウンド予約"));
+  const groundIndex = findSheetColumn(
+    columns,
+    (label) => label.includes("②") && label.includes("グラウンド") && !label.includes("時間帯"),
+  );
+  const timeIndex = findSheetColumn(columns, (label) => label.includes("時間帯"));
+  const opponentIndex = findSheetColumn(columns, (label) => label.includes("対戦相手"));
+  const attendanceManagerIndex = findSheetColumn(columns, (label) => label.includes("メンバー出席管理"));
+  const firstMemberIndex = findSheetColumn(columns, (label) => label.includes("参加者"));
+  const memberStartIndex =
+    firstMemberIndex >= 0 ? firstMemberIndex : attendanceManagerIndex >= 0 ? attendanceManagerIndex + 1 : -1;
+  const memberColumns =
+    memberStartIndex >= 0
+      ? columns.slice(memberStartIndex).map((column, offset) => ({
+          index: memberStartIndex + offset,
+          name: String(column.label || "")
+            .replace(/^参加者\s*/, "")
+            .trim(),
+        }))
+      : [];
+
+  return (table.rows || [])
+    .map((row) => {
+      const attendance = memberColumns
+        .map((member) => ({
+          name: member.name,
+          status: normalizeSheetStatus(getCell(row, member.index)),
+        }))
+        .filter((item) => item.name && item.status);
+      const counts = attendance.reduce(
+        (result, item) => ({
+          ...result,
+          [item.status]: result[item.status] + 1,
+        }),
+        { yes: 0, maybe: 0, no: 0 },
+      );
+      return {
+        weekday: getCell(row, weekdayIndex),
+        date: formatSheetDate(getCell(row, dateIndex)),
+        type: getCell(row, typeIndex),
+        reserve: getCell(row, reserveIndex),
+        ground: getCell(row, groundIndex),
+        time: getCell(row, timeIndex),
+        opponent: getCell(row, opponentIndex),
+        manager: getCell(row, attendanceManagerIndex),
+        attendance,
+        counts,
+      };
+    })
+    .filter((item) => item.date && item.type);
+}
+
+function renderGoogleSheetPanel(items) {
+  if (!sheetStatus || !sheetScheduleList) return;
+  if (!items.length) {
+    sheetStatus.textContent = "シートに表示できる予定がありません。";
+    sheetScheduleList.innerHTML = "";
+    return;
+  }
+
+  sheetStatus.textContent = `${items.length}件をシートから表示中`;
+  sheetStatus.dataset.tone = "ok";
+  sheetScheduleList.innerHTML = items
+    .slice(0, 9)
+    .map((item) => {
+      const typeKey = String(item.type).includes("試合") ? "away" : "practice";
+      const yesMembers = item.attendance
+        .filter((entry) => entry.status === "yes")
+        .map((entry) => entry.name);
+      return `
+        <article class="sheet-card">
+          <div class="sheet-card-head">
+            <div>
+              <time>${escapeHtml(item.date)}</time>
+              <small>${escapeHtml(item.weekday || "")}</small>
+            </div>
+            <span class="tag ${typeKey}">${escapeHtml(item.type)}</span>
+          </div>
+          <dl class="sheet-meta">
+            <div>
+              <dt>場所</dt>
+              <dd>${escapeHtml(item.ground || "未定")}</dd>
+            </div>
+            <div>
+              <dt>時間</dt>
+              <dd>${escapeHtml(item.time || "未定")}</dd>
+            </div>
+            <div>
+              <dt>予約</dt>
+              <dd>${escapeHtml(item.reserve || "未定")}</dd>
+            </div>
+            <div>
+              <dt>相手</dt>
+              <dd>${escapeHtml(item.opponent || "未定")}</dd>
+            </div>
+            <div>
+              <dt>出欠管理</dt>
+              <dd>${escapeHtml(item.manager || "未定")}</dd>
+            </div>
+          </dl>
+          <div class="sheet-attendance" aria-label="出欠集計">
+            <span class="yes">${sheetStatusLabel("yes")} ${item.counts.yes}</span>
+            <span class="maybe">${sheetStatusLabel("maybe")} ${item.counts.maybe}</span>
+            <span class="no">${sheetStatusLabel("no")} ${item.counts.no}</span>
+          </div>
+          <p class="sheet-members">${
+            yesMembers.length ? `参加: ${escapeHtml(yesMembers.join("、"))}` : "参加者未入力"
+          }</p>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function loadGoogleSheetJsonp() {
+  return new Promise((resolve, reject) => {
+    const callbackName = `castleNurseSheet_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const script = document.createElement("script");
+    const timeout = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Google Sheetsの読み込みがタイムアウトしました。"));
+    }, 10000);
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      delete window[callbackName];
+      script.remove();
+    }
+
+    window[callbackName] = (payload) => {
+      cleanup();
+      resolve(payload);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Google Sheetsを読み込めませんでした。"));
+    };
+    script.src = `https://docs.google.com/spreadsheets/d/${googleSheet.id}/gviz/tq?gid=${googleSheet.gid}&tqx=responseHandler:${callbackName}`;
+    document.body.appendChild(script);
+  });
+}
+
+async function initGoogleSheetPanel() {
+  if (!sheetStatus || !sheetScheduleList) return;
+  try {
+    sheetStatus.textContent = "読み込み中...";
+    const payload = await loadGoogleSheetJsonp();
+    renderGoogleSheetPanel(parseGoogleSheetTable(payload.table || {}));
+  } catch (error) {
+    sheetStatus.textContent = "シートを読み込めませんでした。公開設定を確認してください。";
+    sheetStatus.dataset.tone = "error";
+    sheetScheduleList.innerHTML = "";
+  }
+}
+
 function renderMembers(position = "all", query = "") {
   const normalizedQuery = query.trim().toLowerCase();
   const cards = sortedMembers()
     .filter((member) => position === "all" || member.position === position)
     .filter((member) => {
       if (!normalizedQuery) return true;
-      return `${member.number} ${member.name}`.toLowerCase().includes(normalizedQuery);
+      return `${displayMemberNumber(member)} ${member.name}`.toLowerCase().includes(normalizedQuery);
     })
     .map(
       (member) => `
@@ -318,11 +585,11 @@ function renderMembers(position = "all", query = "") {
               : ""
           }
           <div class="member-top">
-            <span class="number">${String(member.number).padStart(2, "0")}</span>
+            <span class="number">${displayMemberNumber(member)}</span>
             <span class="position">${member.position}</span>
           </div>
           <h3>${member.name}</h3>
-          <p>${member.bats}<br />${member.note}</p>
+          <p>${[member.bats, member.note || "プロフィール準備中。"].filter(Boolean).join("<br />")}</p>
         </article>
       `,
     )
@@ -473,7 +740,7 @@ function buildAttendanceOptions() {
   attendanceMember.innerHTML = sortedMembers()
     .map(
       (member) =>
-        `<option value="${member.number}">${String(member.number).padStart(2, "0")} ${escapeHtml(
+        `<option value="${escapeHtml(memberId(member))}">${displayMemberNumber(member)} ${escapeHtml(
           member.name,
         )}</option>`,
     )
@@ -568,8 +835,8 @@ function renderAttendanceCounts() {
   `;
 }
 
-function memberNameById(memberId) {
-  return members.find((member) => String(member.number) === String(memberId))?.name || memberId;
+function memberNameById(id) {
+  return members.find((member) => memberId(member) === String(id))?.name || id;
 }
 
 function memberNamesFor(candidateId, status) {
@@ -620,13 +887,13 @@ function renderAttendanceMatrix() {
     .map((member) => {
       const cells = attendanceCandidates
         .map((candidate) => {
-          const status = findAttendanceRecord(candidate.id, member.number)?.status || "unanswered";
+          const status = findAttendanceRecord(candidate.id, memberId(member))?.status || "unanswered";
           return `<td><span class="matrix-status ${status}">${attendanceStatusLabels[status]}</span></td>`;
         })
         .join("");
       return `
         <tr>
-          <th>${String(member.number).padStart(2, "0")} ${escapeHtml(member.name)}</th>
+          <th>${displayMemberNumber(member)} ${escapeHtml(member.name)}</th>
           ${cells}
         </tr>
       `;
@@ -936,3 +1203,4 @@ renderSchedule();
 renderMembers();
 renderResults();
 initAttendance();
+initGoogleSheetPanel();
