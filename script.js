@@ -25,7 +25,7 @@ const members = [
     photo: "./assets/members/yuki.jpg",
   },
   {
-    number: 2,
+    number: 0,
     name: "マサ",
     position: "外野手",
     bats: "右投右打",
@@ -36,7 +36,7 @@ const members = [
     number: 2,
     name: "ヤマダ",
     position: "内野手",
-    bats: "右投右打",
+    bats: "右投左打",
     note: "チームの勝利のために、全力で戦う。",
     photo: "./assets/members/yamada.jpg",
   },
