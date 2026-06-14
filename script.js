@@ -25,6 +25,22 @@ const members = [
     photo: "./assets/members/yuki.jpg",
   },
   {
+    number: 2,
+    name: "マサ",
+    position: "外野手",
+    bats: "右投右打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/masa.jpg",
+  },
+  {
+    number: 2,
+    name: "ヤマダ",
+    position: "内野手",
+    bats: "右投右打",
+    note: "チームの勝利のために、全力で戦う。",
+    photo: "./assets/members/yamada.jpg",
+  },
+  {
     number: 4,
     name: "カネコ",
     position: "内野手",
