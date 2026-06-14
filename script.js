@@ -13,7 +13,7 @@ const googleSheet = {
 const practiceSheet = {
   id: "1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw",
   gid: "265488796",
-  url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=265488796#gid=265488796",
+  url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?pli=1&gid=265488796#gid=265488796",
 };
 
 const schedule = [
