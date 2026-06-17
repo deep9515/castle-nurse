@@ -44,7 +44,7 @@ const members = [
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/NoName.png",
+    photo: "./assets/members/masa.png",
   },
   {
     id: "yuki",
@@ -53,7 +53,7 @@ const members = [
     position: "内野手",
     bats: "右投左打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/yuki.jpg",
+    photo: "./assets/members/yuki.png",
   },
   {
     id: "yamada-takumi",
@@ -62,7 +62,7 @@ const members = [
     position: "内野手",
     bats: "右投左打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/yamada.jpg",
+    photo: "./assets/members/yamada.png",
   },
   {
     id: "kaneko-tetsuya",
@@ -71,7 +71,7 @@ const members = [
     position: "内野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/kaneko.jpg",
+    photo: "./assets/members/kaneko.png",
   },
   {
     id: "ukishima-sho",
@@ -80,7 +80,7 @@ const members = [
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/ukishima.jpg",
+    photo: "./assets/members/ukishima.png",
   },
   {
     id: "hagishita-ryuichi",
@@ -89,7 +89,7 @@ const members = [
     position: "投手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/hagishita.jpg",
+    photo: "./assets/members/hagishita.png",
   },
   {
     id: "hayashi-sojiro",
@@ -98,7 +98,7 @@ const members = [
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/dirbato.jpg",
+    photo: "./assets/members/dirbato.png",
   },
   {
     id: "iyori",
@@ -107,7 +107,7 @@ const members = [
     position: "内野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/iyori.jpg",
+    photo: "./assets/members/iyori.png",
   },
   {
     id: "takafumi",
@@ -118,10 +118,10 @@ const members = [
   },
   {
     id: "kotaro",
-    order: 102,
+    number: 3,
     name: "コウタロウ",
     position: "メンバー",
-    photo: "./assets/members/NoName.png",
+    photo: "./assets/members/kotaro.JPG",
   },
   {
     id: "matsumura-kazuki",
