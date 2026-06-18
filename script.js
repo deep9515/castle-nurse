@@ -121,7 +121,7 @@ const members = [
     number: 3,
     name: "コウタロウ",
     position: "メンバー",
-    photo: "./assets/members/kotaro.JPG",
+    photo: "./assets/members/kotaro-20260618.JPG",
   },
   {
     id: "matsumura-kazuki",
