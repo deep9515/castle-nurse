@@ -44,7 +44,7 @@ const members = [
     position: "外野手",
     bats: "右投右打",
     note: "チームの勝利のために、全力で戦う。",
-    photo: "./assets/members/masa.png",
+    photo: "./assets/members/NoName.png",
   },
   {
     id: "yuki",
