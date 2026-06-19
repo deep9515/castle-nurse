@@ -120,7 +120,8 @@ const members = [
     id: "kotaro",
     number: 3,
     name: "コウタロウ",
-    position: "メンバー",
+    position: "外野手",
+    bats: "右投右打",
     photo: "./assets/members/kotaro-20260618.JPG",
   },
   {
