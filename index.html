@@ -9,7 +9,7 @@
       content="キャッスルナース（CASTLE NURSE）の試合日程、メンバー一覧、試合結果を見られるチーム公式サイト。"
     />
     <link rel="icon" href="./assets/team-logo-uniform.jpg" />
-    <link rel="stylesheet" href="./styles.css?v=20260614-practice-sheet" />
+    <link rel="stylesheet" href="./styles.css?v=20260620-calendar" />
   </head>
   <body>
     <header class="site-header">
@@ -97,43 +97,43 @@
         </div>
         <div class="toolbar" aria-label="日程フィルター">
           <button class="segmented is-active" type="button" data-schedule-filter="all">すべて</button>
-          <button class="segmented" type="button" data-schedule-filter="home">ホーム</button>
-          <button class="segmented" type="button" data-schedule-filter="away">ビジター</button>
+          <button class="segmented" type="button" data-schedule-filter="game">試合</button>
           <button class="segmented" type="button" data-schedule-filter="tournament">大会</button>
           <button class="segmented" type="button" data-schedule-filter="practice">練習</button>
+          <button class="segmented" type="button" data-schedule-filter="cancelled">キャンセル</button>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>日付</th>
-                <th>開始</th>
-                <th>相手/内容</th>
-                <th>場所</th>
                 <th>種別</th>
-                <th>集合</th>
+                <th>場所</th>
+                <th>時間帯</th>
+                <th>相手/内容</th>
               </tr>
             </thead>
             <tbody id="scheduleRows"></tbody>
           </table>
         </div>
-        <article class="sheet-panel" aria-label="Google Sheets連携">
+        <article class="sheet-panel calendar-panel" aria-label="Google Calendar連携">
           <div class="sheet-panel-head">
             <div>
-              <p class="panel-label">Google Sheets</p>
-              <h3>試合練習日程</h3>
+              <p class="panel-label">Google Calendar</p>
+              <h3>確定日程</h3>
             </div>
             <a
               class="sheet-link"
-              href="https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=775258869#gid=775258869"
+              id="calendarLink"
+              href="https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?pli=1&gid=775258869#gid=775258869"
               target="_blank"
               rel="noreferrer"
             >
-              シートを開く
+              カレンダーを開く
             </a>
           </div>
-          <p class="sheet-status" id="sheetStatus" role="status">読み込み中...</p>
-          <div class="sheet-list" id="sheetScheduleList"></div>
+          <p class="sheet-status" id="calendarStatus" role="status">読み込み中...</p>
+          <div class="sheet-list calendar-list" id="calendarEventList"></div>
         </article>
       </section>
 
@@ -337,6 +337,7 @@
       <a href="#top">トップへ戻る</a>
     </footer>
 
-    <script src="./script.js?v=20260619-kotaro-profile"></script>
+    <script src="./calendar-config.js?v=20260620-calendar"></script>
+    <script src="./script.js?v=20260620-calendar"></script>
   </body>
 </html>

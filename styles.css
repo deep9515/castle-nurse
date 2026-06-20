@@ -445,6 +445,7 @@ h1 span {
 }
 
 .segmented {
+  flex: 0 0 auto;
   min-height: 38px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -480,6 +481,7 @@ h1 span {
 }
 
 .table-wrap {
+  max-width: 100%;
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -530,6 +532,10 @@ tbody tr:last-child td {
   background: var(--green);
 }
 
+.tag.game {
+  background: var(--clay);
+}
+
 .tag.away {
   background: var(--clay);
 }
@@ -541,6 +547,10 @@ tbody tr:last-child td {
 .tag.practice {
   background: var(--gold);
   color: var(--ink);
+}
+
+.tag.cancelled {
+  background: var(--muted);
 }
 
 .sheet-panel {
@@ -590,6 +600,14 @@ tbody tr:last-child td {
 
 .sheet-status[data-tone="error"] {
   color: var(--clay);
+}
+
+.sheet-status[data-tone="ok"] {
+  color: var(--green);
+}
+
+.sheet-status[data-tone="muted"] {
+  color: var(--muted);
 }
 
 .sheet-list {
@@ -718,6 +736,95 @@ tbody tr:last-child td {
 
 .sheet-members .no {
   border-left-color: var(--clay);
+}
+
+.calendar-attendance-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-attendance-summary span {
+  display: grid;
+  min-height: 92px;
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--ink);
+  background: #edf1eb;
+}
+
+.calendar-attendance-summary b {
+  display: block;
+  font-size: clamp(34px, 5vw, 54px);
+  font-weight: 950;
+  line-height: 0.95;
+}
+
+.calendar-attendance-summary small {
+  align-self: end;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.calendar-attendance-summary .yes small,
+.calendar-attendance-summary .no small {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.calendar-attendance-summary .maybe small {
+  color: rgba(23, 33, 28, 0.82);
+}
+
+.calendar-attendance-summary .yes {
+  color: #fff;
+  background: var(--green);
+}
+
+.calendar-attendance-summary .no {
+  color: #fff;
+  background: var(--clay);
+}
+
+.calendar-attendance-summary .maybe {
+  background: var(--gold);
+}
+
+.calendar-members {
+  font-size: 14px;
+}
+
+.calendar-card .sheet-meta dt,
+.calendar-card .sheet-meta dd {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.calendar-card .sheet-meta dt {
+  font-weight: 950;
+}
+
+.calendar-card .sheet-meta dd {
+  font-weight: 950;
+}
+
+.calendar-attendance-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.calendar-card-link {
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 950;
+  text-decoration: none;
+}
+
+.empty-table {
+  color: var(--muted);
+  text-align: center;
 }
 
 .attendance-section {
@@ -1644,7 +1751,12 @@ tbody tr:last-child td {
 
   .nav-links {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 10px 18px;
+  }
+
+  .nav-links a {
+    font-size: 13px;
   }
 
   .hero {
@@ -1664,6 +1776,16 @@ tbody tr:last-child td {
 
   .quick-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .schedule-section .toolbar,
+  .schedule-section .table-wrap {
+    width: calc(100vw - 48px);
+  }
+
+  .schedule-section .toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
   }
 
   .sheet-panel-head,

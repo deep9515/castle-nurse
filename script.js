@@ -1,10 +1,18 @@
 const team = {
   name: "CASTLE NURSE",
-  today: "2026-06-14",
+  today: todayIso(),
   mainGround: "錦糸公園野球場",
 };
 
-const googleSheet = {
+const defaultCalendar = {
+  calendarId: "",
+  apiKey: "",
+  publicUrl: "",
+  maxResults: 20,
+  daysAhead: 120,
+};
+
+const scheduleSheet = {
   id: "1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw",
   gid: "775258869",
   url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?gid=775258869#gid=775258869",
@@ -16,25 +24,19 @@ const practiceSheet = {
   url: "https://docs.google.com/spreadsheets/d/1n3VHETRKGHBl6mvxo7cxyFBN8mCjplZHr67qf8KXDkw/edit?pli=1&gid=265488796#gid=265488796",
 };
 
-const schedule = [
+const fallbackSchedule = [
   {
     date: "2026-06-28",
-    time: "時間未定",
-    opponent: "練習",
+    time: "18:00-19:00",
+    opponent: "グラウンド練習",
     venue: "スポドリ@後楽園",
     type: "practice",
-    meeting: "現地集合",
-  },
-  {
-    date: "2026-07-01",
-    displayDate: "7/XX",
-    time: "時間未定",
-    opponent: "練習",
-    venue: "錦糸公園",
-    type: "practice",
-    meeting: "現地集合",
+    reservation: "浮島＋萩下",
+    manager: "仲村",
   },
 ];
+
+let schedule = fallbackSchedule.slice();
 
 const members = [
   {
@@ -194,10 +196,12 @@ const results = [
 ];
 
 const typeLabels = {
+  game: "試合",
   home: "ホーム",
   away: "ビジター",
   tournament: "大会",
   practice: "練習",
+  cancelled: "キャンセル",
 };
 
 const attendanceStatusLabels = {
@@ -311,8 +315,9 @@ const attendanceCandidates = [
 ];
 
 const scheduleRows = document.querySelector("#scheduleRows");
-const sheetStatus = document.querySelector("#sheetStatus");
-const sheetScheduleList = document.querySelector("#sheetScheduleList");
+const calendarStatus = document.querySelector("#calendarStatus");
+const calendarEventList = document.querySelector("#calendarEventList");
+const calendarLink = document.querySelector("#calendarLink");
 const practiceSheetStatus = document.querySelector("#practiceSheetStatus");
 const practiceSheetList = document.querySelector("#practiceSheetList");
 const memberGrid = document.querySelector("#memberGrid");
@@ -335,6 +340,18 @@ let attendanceRecords = [];
 let attendanceClient = null;
 let attendanceDraft = {};
 let activeAttendanceView = "cards";
+let activeScheduleFilter = "all";
+
+function todayIso() {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("ja-JP", {
@@ -349,7 +366,10 @@ function formatScheduleDate(game) {
 }
 
 function scheduleTitle(game) {
-  return game.type === "practice" ? game.opponent : `vs ${game.opponent}`;
+  if (!game) return "予定なし";
+  if (game.type === "practice") return game.opponent || "練習";
+  if (game.type === "cancelled") return "キャンセル";
+  return game.opponent && !/^[ー-]$/.test(game.opponent) ? `vs ${game.opponent}` : typeLabels[game.type] || "予定";
 }
 
 function sortedMembers() {
@@ -391,18 +411,331 @@ function renderSchedule(filter = "all") {
     .map(
       (game) => `
         <tr>
-          <td>${formatScheduleDate(game)}</td>
-          <td>${game.time}</td>
-          <td>${game.opponent}</td>
-          <td>${game.venue}</td>
-          <td><span class="tag ${game.type}">${typeLabels[game.type]}</span></td>
-          <td>${game.meeting}</td>
+          <td>${escapeHtml(formatScheduleDate(game))}</td>
+          <td><span class="tag ${escapeHtml(game.type)}">${escapeHtml(typeLabels[game.type] || "予定")}</span></td>
+          <td>${escapeHtml(game.venue || "未定")}</td>
+          <td>${escapeHtml(game.time || "未定")}</td>
+          <td>${escapeHtml(game.opponent || "未定")}</td>
         </tr>
       `,
     )
     .join("");
 
-  scheduleRows.innerHTML = rows;
+  scheduleRows.innerHTML = rows || `
+    <tr>
+      <td class="empty-table" colspan="5">表示できる予定がありません。</td>
+    </tr>
+  `;
+}
+
+function getCalendarConfig() {
+  return {
+    ...defaultCalendar,
+    ...(window.CASTLE_NURSE_CALENDAR || {}),
+  };
+}
+
+function calendarApiUrl(config) {
+  const today = new Date(`${team.today}T00:00:00+09:00`);
+  const timeMax = new Date(today);
+  timeMax.setDate(today.getDate() + Number(config.daysAhead || defaultCalendar.daysAhead));
+  const params = new URLSearchParams({
+    key: config.apiKey,
+    timeMin: today.toISOString(),
+    timeMax: timeMax.toISOString(),
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: String(config.maxResults || defaultCalendar.maxResults),
+  });
+  return `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(config.calendarId)}/events?${params}`;
+}
+
+function formatCalendarTime(start, end) {
+  if (!start?.dateTime) return "終日";
+  const formatter = new Intl.DateTimeFormat("ja-JP", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const startTime = formatter.format(new Date(start.dateTime));
+  const endTime = end?.dateTime ? formatter.format(new Date(end.dateTime)) : "";
+  return endTime ? `${startTime}-${endTime}` : startTime;
+}
+
+function calendarDate(start) {
+  if (start?.date) return start.date;
+  if (!start?.dateTime) return team.today;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(start.dateTime));
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function calendarText(value) {
+  return String(value || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+\n/g, "\n")
+    .trim();
+}
+
+function findCalendarMeta(description, labels) {
+  const labelPattern = labels.map((label) => label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const pattern = new RegExp(`^(${labelPattern})\\s*[:：]\\s*(.+)$`, "i");
+  return calendarText(description)
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .map((line) => line.match(pattern)?.[2]?.trim())
+    .find(Boolean);
+}
+
+function normalizeCalendarType(value) {
+  const type = String(value || "").trim().toLowerCase();
+  if (!type) return "";
+  if (["game", "match", "試合", "練習試合", "公式戦"].includes(type)) return "game";
+  if (["practice", "練習", "トレーニング"].includes(type)) return "practice";
+  if (["tournament", "大会", "トーナメント", "cup"].includes(type)) return "tournament";
+  if (["cancelled", "canceled", "cancel", "キャンセル", "中止"].includes(type)) return "cancelled";
+  if (["home", "ホーム"].includes(type)) return "home";
+  if (["away", "ビジター", "アウェイ"].includes(type)) return "away";
+  return "";
+}
+
+function inferCalendarType(event) {
+  const sharedType = event.extendedProperties?.shared?.type;
+  const metaType = normalizeCalendarType(
+    sharedType || findCalendarMeta(event.description, ["練習/試合", "練習・試合", "種別", "type"]),
+  );
+  if (metaType) return metaType;
+  if (event.status === "cancelled") return "cancelled";
+  const text = `${event.summary || ""} ${event.description || ""} ${event.location || ""}`.toLowerCase();
+  if (/キャンセル|中止|cancel/.test(text)) return "cancelled";
+  if (/練習|practice|トレーニング/.test(text)) return "practice";
+  if (/大会|トーナメント|tournament|cup/.test(text)) return "tournament";
+  if (/ホーム|home/.test(text) || String(event.location || "").includes(team.mainGround)) return "home";
+  if (/ビジター|アウェイ|away/.test(text)) return "away";
+  return "game";
+}
+
+function calendarOpponent(event, type) {
+  const summary = String(event.summary || "").trim();
+  const descriptionOpponent = findCalendarMeta(event.description, ["相手/内容", "内容", "相手", "対戦相手", "opponent"]);
+  if (descriptionOpponent) return descriptionOpponent;
+  if (type === "practice") return summary || "練習";
+  if (type === "cancelled") return summary.replace(/キャンセル|中止/g, "").trim() || "キャンセル";
+  return (
+    summary
+      .replace(new RegExp(team.name, "gi"), "")
+      .replace(/^(試合|練習試合|公式戦|大会)\s*[:：-]?\s*/i, "")
+      .replace(/^(vs|VS|対)\s*/i, "")
+      .trim() || "対戦相手未定"
+  );
+}
+
+function normalizeCalendarEvent(event) {
+  const type = inferCalendarType(event);
+  const descriptionTime = findCalendarMeta(event.description, ["時間帯", "開始", "time"]);
+  const venue = event.location || findCalendarMeta(event.description, ["場所", "球場", "会場", "venue"]) || "未定";
+  return {
+    date: calendarDate(event.start),
+    time: descriptionTime || formatCalendarTime(event.start, event.end),
+    opponent: calendarOpponent(event, type),
+    venue,
+    type,
+    reservation: findCalendarMeta(event.description, ["グラウンド予約", "予約", "reservation"]) || "",
+    manager: findCalendarMeta(event.description, ["メンバー出席管理", "出欠管理", "管理", "manager"]) || "",
+    url: event.htmlLink || "",
+  };
+}
+
+function sheetDateToIso(value) {
+  const formatted = formatSheetDate(value);
+  const match = String(formatted || "").match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (!match) return "";
+  return `${match[1]}-${match[2]}-${match[3]}`;
+}
+
+function parseScheduleSheetTable(table) {
+  const columns = table.cols || [];
+  const weekdayIndex = findSheetColumn(columns, (label) => label.includes("曜日"));
+  const dateIndex = findSheetColumn(columns, (label) => label.includes("月日"));
+  const typeIndex = findSheetColumn(columns, (label) => label.includes("練習") && label.includes("試合"));
+  const venueIndex = findSheetColumn(columns, (label) => label === "場所");
+  const timeIndex = findSheetColumn(columns, (label) => label.includes("時間帯"));
+  const opponentIndex = findSheetColumn(columns, (label) => label.includes("相手") || label.includes("内容"));
+  const attendanceManagerIndex = findSheetColumn(columns, (label) => label.includes("メンバー出席管理"));
+  const memberStartIndex = attendanceManagerIndex >= 0 ? attendanceManagerIndex + 1 : opponentIndex + 1;
+
+  return (table.rows || [])
+    .map((row) => {
+      const attendance = columns
+        .slice(memberStartIndex)
+        .map((column, offset) => ({
+          name: String(column.label || "").trim(),
+          status: normalizeSheetStatus(getCell(row, memberStartIndex + offset)),
+        }))
+        .filter((item) => item.name && item.status);
+      const counts = attendance.reduce(
+        (result, item) => ({
+          ...result,
+          [item.status]: result[item.status] + 1,
+        }),
+        { yes: 0, maybe: 0, no: 0 },
+      );
+      return {
+        date: sheetDateToIso(getCell(row, dateIndex)),
+        displayDate: formatSheetDate(getCell(row, dateIndex)),
+        weekday: getCell(row, weekdayIndex),
+        type: normalizeCalendarType(getCell(row, typeIndex)),
+        venue: getCell(row, venueIndex),
+        time: getCell(row, timeIndex),
+        opponent: getCell(row, opponentIndex),
+        attendance,
+        counts,
+      };
+    })
+    .filter((item) => item.date && item.attendance.length);
+}
+
+async function loadScheduleAttendanceItems() {
+  const payload = await loadGoogleSheetJsonp(scheduleSheet);
+  return parseScheduleSheetTable(payload.table || {});
+}
+
+function findScheduleAttendance(item, attendanceItems) {
+  return attendanceItems.find((attendance) => attendance.date === item.date);
+}
+
+async function loadGoogleCalendarEvents() {
+  const config = getCalendarConfig();
+  if (calendarLink) {
+    calendarLink.href = config.publicUrl || "https://calendar.google.com/";
+  }
+  if (!config.calendarId || !config.apiKey) {
+    return { items: fallbackSchedule.slice(), source: "fallback", reason: "カレンダー未設定のため、仮日程を表示中" };
+  }
+
+  const response = await fetch(calendarApiUrl(config));
+  if (!response.ok) {
+    throw new Error("Google Calendarを読み込めませんでした。");
+  }
+  const payload = await response.json();
+  return {
+    items: (payload.items || []).map(normalizeCalendarEvent),
+    source: "calendar",
+  };
+}
+
+function renderAttendanceNames(attendance = [], status) {
+  const names = attendance
+    .filter((entry) => entry.status === status)
+    .map((entry) => entry.name);
+  return names.length ? escapeHtml(names.join("、")) : "なし";
+}
+
+function renderCalendarPanel(items, options = {}) {
+  if (!calendarStatus || !calendarEventList) return;
+  const tone = options.tone || "ok";
+  const attendanceItems = options.attendanceItems || [];
+  calendarStatus.dataset.tone = tone;
+  calendarStatus.textContent = options.message || `${items.length}件をGoogle Calendarから表示中`;
+
+  calendarEventList.innerHTML = items
+    .slice(0, 6)
+    .map((item) => {
+      const attendance = findScheduleAttendance(item, attendanceItems);
+      return `
+        <article class="sheet-card calendar-card">
+          <div class="sheet-card-head">
+            <div>
+              <time>${escapeHtml(formatScheduleDate(item))}</time>
+              <small>${escapeHtml(item.time || "未定")}</small>
+            </div>
+            <span class="tag ${escapeHtml(item.type)}">${escapeHtml(typeLabels[item.type] || "予定")}</span>
+          </div>
+          ${
+            attendance
+              ? `
+                <div class="calendar-attendance-summary" aria-label="出欠集計">
+                  <span class="yes"><b>${attendance.counts.yes}</b><small>参加</small></span>
+                  <span class="no"><b>${attendance.counts.no}</b><small>不参加</small></span>
+                  <span class="maybe"><b>${attendance.counts.maybe}</b><small>未定</small></span>
+                </div>
+                <div class="sheet-members calendar-members">
+                  <p class="yes">参加: ${renderAttendanceNames(attendance.attendance, "yes")}</p>
+                  <p class="no">不参加: ${renderAttendanceNames(attendance.attendance, "no")}</p>
+                  <p class="maybe">未定: ${renderAttendanceNames(attendance.attendance, "maybe")}</p>
+                </div>
+              `
+              : `<p class="calendar-attendance-empty">出欠データなし</p>`
+          }
+          <dl class="sheet-meta">
+            <div>
+              <dt>内容</dt>
+              <dd>${escapeHtml(item.opponent || "未定")}</dd>
+            </div>
+            <div>
+              <dt>場所</dt>
+              <dd>${escapeHtml(item.venue || "未定")}</dd>
+            </div>
+            <div>
+              <dt>時間帯</dt>
+              <dd>${escapeHtml(item.time || "未定")}</dd>
+            </div>
+          </dl>
+          ${
+            item.url
+              ? `<a class="calendar-card-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">予定を開く</a>`
+              : ""
+          }
+        </article>
+      `;
+    })
+    .join("");
+}
+
+async function initGoogleCalendarSchedule() {
+  let attendanceItems = [];
+  try {
+    attendanceItems = await loadScheduleAttendanceItems();
+  } catch (error) {
+    attendanceItems = [];
+  }
+
+  try {
+    const result = await loadGoogleCalendarEvents();
+    schedule = result.source === "calendar" ? result.items : fallbackSchedule.slice();
+    renderSchedule(activeScheduleFilter);
+    renderSummary();
+    if (result.source === "fallback") {
+      renderCalendarPanel(schedule, { tone: "muted", message: result.reason, attendanceItems });
+      return;
+    }
+    if (!schedule.length) {
+      renderCalendarPanel(schedule, {
+        tone: "muted",
+        message: "Google Calendarに今後の予定がありません。",
+        attendanceItems,
+      });
+      return;
+    }
+    renderCalendarPanel(schedule, { attendanceItems });
+  } catch (error) {
+    schedule = fallbackSchedule.slice();
+    renderSchedule(activeScheduleFilter);
+    renderSummary();
+    renderCalendarPanel(schedule, {
+      tone: "error",
+      message: "Google Calendarを読み込めませんでした。公開設定とAPIキーを確認してください。",
+      attendanceItems,
+    });
+  }
 }
 
 function compactLabel(value) {
@@ -450,138 +783,6 @@ function sheetStatusLabel(status) {
   if (status === "maybe") return "🔺";
   if (status === "no") return "×";
   return "";
-}
-
-function parseGoogleSheetTable(table) {
-  const columns = table.cols || [];
-  const weekdayIndex = findSheetColumn(columns, (label) => label.includes("曜日"));
-  const dateIndex = findSheetColumn(columns, (label) => label.includes("月日"));
-  const typeIndex = findSheetColumn(columns, (label) => label.includes("練習") && label.includes("試合"));
-  const reserveIndex = findSheetColumn(columns, (label) => label.includes("グラウンド予約"));
-  const groundIndex = findSheetColumn(
-    columns,
-    (label) => label.includes("②") && label.includes("グラウンド") && !label.includes("時間帯"),
-  );
-  const timeIndex = findSheetColumn(columns, (label) => label.includes("時間帯"));
-  const opponentIndex = findSheetColumn(columns, (label) => label.includes("対戦相手"));
-  const attendanceManagerIndex = findSheetColumn(columns, (label) => label.includes("メンバー出席管理"));
-  const firstMemberIndex = findSheetColumn(columns, (label) => label.includes("参加者"));
-  const memberStartIndex =
-    firstMemberIndex >= 0 ? firstMemberIndex : attendanceManagerIndex >= 0 ? attendanceManagerIndex + 1 : -1;
-  const memberColumns =
-    memberStartIndex >= 0
-      ? columns.slice(memberStartIndex).map((column, offset) => ({
-          index: memberStartIndex + offset,
-          name: String(column.label || "")
-            .replace(/^参加者\s*/, "")
-            .trim(),
-        }))
-      : [];
-
-  const today = new Date(`${team.today}T00:00:00+09:00`);
-
-  return (table.rows || [])
-    .map((row) => {
-      const attendance = memberColumns
-        .map((member) => ({
-          name: member.name,
-          status: normalizeSheetStatus(getCell(row, member.index)),
-        }))
-        .filter((item) => item.name && item.status);
-      const counts = attendance.reduce(
-        (result, item) => ({
-          ...result,
-          [item.status]: result[item.status] + 1,
-        }),
-        { yes: 0, maybe: 0, no: 0 },
-      );
-      return {
-        weekday: getCell(row, weekdayIndex),
-        date: formatSheetDate(getCell(row, dateIndex)),
-        type: getCell(row, typeIndex),
-        reserve: getCell(row, reserveIndex),
-        ground: getCell(row, groundIndex),
-        time: getCell(row, timeIndex),
-        opponent: getCell(row, opponentIndex),
-        manager: getCell(row, attendanceManagerIndex),
-        attendance,
-        counts,
-      };
-    })
-    .filter((item) => {
-      const date = parseDateForCompare(item.date);
-      return item.date && item.type && (!date || date >= today);
-    });
-}
-
-function renderGoogleSheetPanel(items) {
-  if (!sheetStatus || !sheetScheduleList) return;
-  if (!items.length) {
-    sheetStatus.textContent = "シートに表示できる予定がありません。";
-    sheetScheduleList.innerHTML = "";
-    return;
-  }
-
-  sheetStatus.textContent = `${items.length}件をシートから表示中`;
-  sheetStatus.dataset.tone = "ok";
-  sheetScheduleList.innerHTML = items
-    .slice(0, 9)
-    .map((item) => {
-      const typeKey = String(item.type).includes("試合") ? "away" : "practice";
-      const yesMembers = item.attendance
-        .filter((entry) => entry.status === "yes")
-        .map((entry) => entry.name);
-      const maybeMembers = item.attendance
-        .filter((entry) => entry.status === "maybe")
-        .map((entry) => entry.name);
-      const noMembers = item.attendance
-        .filter((entry) => entry.status === "no")
-        .map((entry) => entry.name);
-      return `
-        <article class="sheet-card">
-          <div class="sheet-card-head">
-            <div>
-              <time>${escapeHtml(item.date)}</time>
-              <small>${escapeHtml(item.weekday || "")}</small>
-            </div>
-            <span class="tag ${typeKey}">${escapeHtml(item.type)}</span>
-          </div>
-          <dl class="sheet-meta">
-            <div>
-              <dt>場所</dt>
-              <dd>${escapeHtml(item.ground || "未定")}</dd>
-            </div>
-            <div>
-              <dt>時間</dt>
-              <dd>${escapeHtml(item.time || "未定")}</dd>
-            </div>
-            <div>
-              <dt>予約</dt>
-              <dd>${escapeHtml(item.reserve || "未定")}</dd>
-            </div>
-            <div>
-              <dt>相手</dt>
-              <dd>${escapeHtml(item.opponent || "未定")}</dd>
-            </div>
-            <div>
-              <dt>出欠管理</dt>
-              <dd>${escapeHtml(item.manager || "未定")}</dd>
-            </div>
-          </dl>
-          <div class="sheet-attendance" aria-label="出欠集計">
-            <span class="yes">${sheetStatusLabel("yes")} ${item.counts.yes}</span>
-            <span class="maybe">${sheetStatusLabel("maybe")} ${item.counts.maybe}</span>
-            <span class="no">${sheetStatusLabel("no")} ${item.counts.no}</span>
-          </div>
-          <div class="sheet-members">
-            <p class="yes">参加: ${yesMembers.length ? escapeHtml(yesMembers.join("、")) : "未入力"}</p>
-            <p class="maybe">未定: ${maybeMembers.length ? escapeHtml(maybeMembers.join("、")) : "なし"}</p>
-            <p class="no">不参加: ${noMembers.length ? escapeHtml(noMembers.join("、")) : "なし"}</p>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
 }
 
 function parsePracticeSheetTable(table) {
@@ -678,7 +879,7 @@ function renderPracticeSheetPanel(items) {
     .join("");
 }
 
-function loadGoogleSheetJsonp(sheet = googleSheet) {
+function loadGoogleSheetJsonp(sheet = practiceSheet) {
   return new Promise((resolve, reject) => {
     const callbackName = `castleNurseSheet_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     const script = document.createElement("script");
@@ -705,19 +906,6 @@ function loadGoogleSheetJsonp(sheet = googleSheet) {
     script.src = `https://docs.google.com/spreadsheets/d/${sheet.id}/gviz/tq?gid=${sheet.gid}&tqx=responseHandler:${callbackName}`;
     document.body.appendChild(script);
   });
-}
-
-async function initGoogleSheetPanel() {
-  if (!sheetStatus || !sheetScheduleList) return;
-  try {
-    sheetStatus.textContent = "読み込み中...";
-    const payload = await loadGoogleSheetJsonp();
-    renderGoogleSheetPanel(parseGoogleSheetTable(payload.table || {}));
-  } catch (error) {
-    sheetStatus.textContent = "シートを読み込めませんでした。公開設定を確認してください。";
-    sheetStatus.dataset.tone = "error";
-    sheetScheduleList.innerHTML = "";
-  }
 }
 
 async function initPracticeSheetPanel() {
@@ -1231,9 +1419,9 @@ function renderSummary() {
   document.querySelector("#memberCount").textContent = `${members.length}名`;
   document.querySelector("#nextMonthGames").textContent = `${upcoming.length}件`;
   document.querySelector("#nextGameTitle").textContent = scheduleTitle(next);
-  document.querySelector("#nextGameDate").textContent = `${formatScheduleDate(next)} ${next.time}`;
-  document.querySelector("#nextGameVenue").textContent = next.venue;
-  document.querySelector("#nextGameOpponent").textContent = next.opponent;
+  document.querySelector("#nextGameDate").textContent = next ? `${formatScheduleDate(next)} ${next.time}` : "-";
+  document.querySelector("#nextGameVenue").textContent = next?.venue || "-";
+  document.querySelector("#nextGameOpponent").textContent = next?.opponent || "-";
 }
 
 function buildContactMailto(values) {
@@ -1265,7 +1453,8 @@ document.querySelectorAll("[data-schedule-filter]").forEach((button) => {
     document
       .querySelectorAll("[data-schedule-filter]")
       .forEach((item) => item.classList.toggle("is-active", item === button));
-    renderSchedule(button.dataset.scheduleFilter);
+    activeScheduleFilter = button.dataset.scheduleFilter;
+    renderSchedule(activeScheduleFilter);
   });
 });
 
@@ -1372,5 +1561,5 @@ renderResults();
 if (attendanceForm) {
   initAttendance();
 }
-initGoogleSheetPanel();
+initGoogleCalendarSchedule();
 initPracticeSheetPanel();
