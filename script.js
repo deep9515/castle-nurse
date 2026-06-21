@@ -323,7 +323,6 @@ const practiceSheetList = document.querySelector("#practiceSheetList");
 const memberGrid = document.querySelector("#memberGrid");
 const resultList = document.querySelector("#resultList");
 const memberSearch = document.querySelector("#memberSearch");
-const contactForm = document.querySelector("#contactForm");
 const attendanceForm = document.querySelector("#attendanceForm");
 const attendanceMember = document.querySelector("#attendanceMember");
 const attendanceComment = document.querySelector("#attendanceComment");
@@ -1424,28 +1423,6 @@ function renderSummary() {
   document.querySelector("#nextGameOpponent").textContent = next?.opponent || "-";
 }
 
-function buildContactMailto(values) {
-  const subject = `【試合希望】${values.team}様より`;
-  const body = [
-    "キャッスルナース ご担当者様",
-    "",
-    "試合希望の問い合わせです。",
-    "",
-    `チーム名: ${values.team}`,
-    `担当者名: ${values.name}`,
-    `返信先メール: ${values.email}`,
-    `希望日: ${values.date || "未定"}`,
-    `希望場所: ${values.venue || "未定"}`,
-    "",
-    "内容:",
-    values.message || "未記入",
-    "",
-    "よろしくお願いいたします。",
-  ].join("\n");
-
-  return `mailto:goldship.ougon@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
 let activePosition = "all";
 
 document.querySelectorAll("[data-schedule-filter]").forEach((button) => {
@@ -1538,21 +1515,6 @@ if (attendanceForm && attendanceMember && attendanceCandidateGrid && attendanceT
     syncAttendanceForm();
   });
 }
-
-contactForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (!contactForm.reportValidity()) return;
-
-  const values = {
-    team: document.querySelector("#contactTeam").value.trim(),
-    name: document.querySelector("#contactName").value.trim(),
-    email: document.querySelector("#contactEmail").value.trim(),
-    date: document.querySelector("#contactDate").value,
-    venue: document.querySelector("#contactVenue").value.trim(),
-    message: document.querySelector("#contactMessage").value.trim(),
-  };
-  window.location.href = buildContactMailto(values);
-});
 
 renderSummary();
 renderSchedule();

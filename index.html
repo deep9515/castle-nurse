@@ -9,7 +9,7 @@
       content="キャッスルナース（CASTLE NURSE）の試合日程、メンバー一覧、試合結果を見られるチーム公式サイト。"
     />
     <link rel="icon" href="./assets/team-logo-uniform.jpg" />
-    <link rel="stylesheet" href="./styles.css?v=20260621-line-qr" />
+    <link rel="stylesheet" href="./styles.css?v=20260621-line-only" />
   </head>
   <body>
     <header class="site-header">
@@ -291,10 +291,7 @@
           <article class="contact-panel">
             <p class="panel-label">Game Request</p>
             <h3>対戦のお誘いはこちらまで</h3>
-            <p>
-              練習試合・合同練習のご相談は、フォーム入力後にメール作成画面が開きます。
-              内容を確認して送信してください。
-            </p>
+            <p>練習試合・合同練習のご相談は、LINEからお気軽にご連絡ください。</p>
             <a class="line-qr-card" href="https://line.me/R/ti/p/@302cjonf" target="_blank" rel="noreferrer">
               <img src="./assets/contact/line-qr.png" alt="キャッスルナース公式LINEのQRコード" />
               <span>
@@ -303,38 +300,6 @@
               </span>
             </a>
           </article>
-          <form class="contact-form" id="contactForm">
-            <label>
-              <span>チーム名</span>
-              <input id="contactTeam" name="team" type="text" placeholder="例: 墨田サンダース" required />
-            </label>
-            <label>
-              <span>担当者名</span>
-              <input id="contactName" name="name" type="text" placeholder="例: 山田" required />
-            </label>
-            <label>
-              <span>返信先メール</span>
-              <input id="contactEmail" name="email" type="email" placeholder="example@example.com" required />
-            </label>
-            <label>
-              <span>希望日（任意）</span>
-              <input id="contactDate" name="date" type="date" />
-            </label>
-            <label>
-              <span>希望場所</span>
-              <input id="contactVenue" name="venue" type="text" placeholder="例: 錦糸公園野球場" />
-            </label>
-            <label class="wide">
-              <span>内容</span>
-              <textarea
-                id="contactMessage"
-                name="message"
-                rows="6"
-                placeholder="試合時間、人数、レベル感、その他相談したいこと"
-              ></textarea>
-            </label>
-            <button class="contact-submit" type="submit">試合希望メールを作成</button>
-          </form>
         </div>
       </section>
     </main>
@@ -345,6 +310,6 @@
     </footer>
 
     <script src="./calendar-config.js?v=20260620-calendar"></script>
-    <script src="./script.js?v=20260620-calendar"></script>
+    <script src="./script.js?v=20260621-line-only"></script>
   </body>
 </html>

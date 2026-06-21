@@ -1442,13 +1442,13 @@ tbody tr:last-child td {
 
 .contact-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 0.82fr) minmax(0, 1.18fr);
+  grid-template-columns: minmax(280px, 720px);
   gap: 18px;
   align-items: stretch;
+  justify-content: center;
 }
 
-.contact-panel,
-.contact-form {
+.contact-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -1520,56 +1520,6 @@ tbody tr:last-child td {
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0;
-}
-
-.contact-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: clamp(18px, 3vw, 28px);
-}
-
-.contact-form label {
-  display: grid;
-  gap: 7px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.contact-form label.wide,
-.contact-submit {
-  grid-column: 1 / -1;
-}
-
-.contact-form input,
-.contact-form textarea {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 11px 12px;
-  color: var(--ink);
-  font-weight: 750;
-  background: #fff;
-}
-
-.contact-form input {
-  min-height: 46px;
-}
-
-.contact-form textarea {
-  min-height: 146px;
-  resize: vertical;
-}
-
-.contact-submit {
-  min-height: 50px;
-  border: 0;
-  border-radius: 8px;
-  color: #fff;
-  font-weight: 950;
-  cursor: pointer;
-  background: var(--clay);
 }
 
 .match-detail-section {
@@ -1896,10 +1846,6 @@ tbody tr:last-child td {
   }
 
   .result-card {
-    grid-template-columns: 1fr;
-  }
-
-  .contact-form {
     grid-template-columns: 1fr;
   }
 
