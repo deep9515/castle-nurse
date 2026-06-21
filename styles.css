@@ -1480,6 +1480,48 @@ tbody tr:last-child td {
   line-height: 1.8;
 }
 
+.line-qr-card {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--navy);
+  background: #fff;
+  text-decoration: none;
+}
+
+.line-qr-card img {
+  width: 112px;
+  aspect-ratio: 1;
+  border: 8px solid #fff;
+  border-radius: 8px;
+  background: #fff;
+  image-rendering: pixelated;
+}
+
+.line-qr-card span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.line-qr-card strong {
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.line-qr-card small {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
 .contact-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
