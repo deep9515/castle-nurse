@@ -25,6 +25,7 @@
       <nav class="nav-links" aria-label="ページ内リンク">
         <a href="#schedule">日程</a>
         <a href="#attendance">出欠</a>
+        <a href="#scorebook">成績</a>
         <a href="#members">メンバー</a>
         <a href="#ground">グラウンド</a>
         <a href="#results">結果</a>
@@ -160,6 +161,153 @@
           <p class="sheet-status" id="practiceSheetStatus" role="status">読み込み中...</p>
           <div class="sheet-list practice-sheet-list" id="practiceSheetList"></div>
         </article>
+      </section>
+
+      <section class="section scorebook-section" id="scorebook">
+        <div class="section-heading">
+          <p>Scorebook</p>
+          <h2>オーダー・成績管理</h2>
+        </div>
+        <div class="scorebook-layout">
+          <article class="scorebook-board" aria-label="成績ランキング">
+            <div class="scorebook-board-head">
+              <div>
+                <p class="panel-label">Leaders</p>
+                <h3>チーム成績</h3>
+              </div>
+              <span class="scorebook-mode" id="scorebookMode">Local</span>
+            </div>
+            <p class="sheet-status" id="scorebookStatus" role="status"></p>
+            <div class="scorebook-summary" id="scorebookSummary"></div>
+            <div class="leaderboard-grid">
+              <section class="leaderboard-panel">
+                <div class="leaderboard-head">
+                  <h4>打率 TOP5</h4>
+                  <span>AB 1+</span>
+                </div>
+                <div class="mini-table-wrap">
+                  <table class="mini-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>選手</th>
+                        <th>AVG</th>
+                        <th>H/AB</th>
+                        <th>HR</th>
+                      </tr>
+                    </thead>
+                    <tbody id="battingLeaderRows"></tbody>
+                  </table>
+                </div>
+              </section>
+              <section class="leaderboard-panel">
+                <div class="leaderboard-head">
+                  <h4>防御率 TOP5</h4>
+                  <span>OUT 1+</span>
+                </div>
+                <div class="mini-table-wrap">
+                  <table class="mini-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>投手</th>
+                        <th>ERA</th>
+                        <th>IP</th>
+                        <th>K</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pitchingLeaderRows"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+            <div class="recent-scorebook-games">
+              <div class="leaderboard-head">
+                <h4>最近の登録試合</h4>
+                <span id="scorebookGameCount">0件</span>
+              </div>
+              <div class="scorebook-game-list" id="scorebookGameList"></div>
+            </div>
+          </article>
+
+          <aside class="scorebook-entry" aria-label="成績入力">
+            <div class="scorebook-entry-head">
+              <div>
+                <p class="panel-label">Entry</p>
+                <h3>登録</h3>
+              </div>
+              <button class="sheet-link scorebook-refresh" type="button" id="scorebookRefresh">更新</button>
+            </div>
+            <label class="scorebook-team-code">
+              <span>チームコード</span>
+              <input id="scorebookTeamCode" type="password" autocomplete="current-password" />
+            </label>
+            <div class="scorebook-tabs" aria-label="入力切り替え">
+              <button class="segmented is-active" type="button" data-scorebook-tab="game">試合</button>
+              <button class="segmented" type="button" data-scorebook-tab="lineup">オーダー</button>
+              <button class="segmented" type="button" data-scorebook-tab="batting">打撃</button>
+              <button class="segmented" type="button" data-scorebook-tab="pitching">投手</button>
+            </div>
+
+            <form class="scorebook-form is-active" id="scorebookGameForm" data-scorebook-panel="game">
+              <div class="scorebook-form-grid">
+                <label>日付<input type="date" name="game_date" required /></label>
+                <label>相手<input type="text" name="opponent" maxlength="80" required /></label>
+                <label>球場<input type="text" name="venue" maxlength="80" /></label>
+                <label>自軍<input type="number" name="our_score" min="0" /></label>
+                <label>相手点<input type="number" name="opponent_score" min="0" /></label>
+                <label class="span-2">メモ<input type="text" name="note" maxlength="240" /></label>
+              </div>
+              <button class="attendance-submit" type="submit">試合を保存</button>
+            </form>
+
+            <form class="scorebook-form" id="scorebookLineupForm" data-scorebook-panel="lineup">
+              <div class="scorebook-form-grid">
+                <label class="span-2">試合<select name="game_id" class="scorebook-game-select" required></select></label>
+                <label>打順<input type="number" name="batting_order" min="1" max="99" required /></label>
+                <label>守備<input type="text" name="position" maxlength="24" required /></label>
+                <label class="span-2">選手<select name="member_id" class="scorebook-member-select" required></select></label>
+                <label class="check-field"><input type="checkbox" name="starter" checked />先発</label>
+                <label>メモ<input type="text" name="note" maxlength="160" /></label>
+              </div>
+              <button class="attendance-submit" type="submit">オーダーを保存</button>
+            </form>
+
+            <form class="scorebook-form" id="scorebookBattingForm" data-scorebook-panel="batting">
+              <div class="scorebook-form-grid dense">
+                <label class="span-2">試合<select name="game_id" class="scorebook-game-select" required></select></label>
+                <label class="span-2">選手<select name="member_id" class="scorebook-member-select" required></select></label>
+                <label>PA<input type="number" name="plate_appearances" min="0" value="0" /></label>
+                <label>AB<input type="number" name="at_bats" min="0" value="0" /></label>
+                <label>H<input type="number" name="hits" min="0" value="0" /></label>
+                <label>2B<input type="number" name="doubles" min="0" value="0" /></label>
+                <label>3B<input type="number" name="triples" min="0" value="0" /></label>
+                <label>HR<input type="number" name="home_runs" min="0" value="0" /></label>
+                <label>RBI<input type="number" name="rbi" min="0" value="0" /></label>
+                <label>R<input type="number" name="runs" min="0" value="0" /></label>
+                <label>BB<input type="number" name="walks" min="0" value="0" /></label>
+                <label>SO<input type="number" name="strikeouts" min="0" value="0" /></label>
+                <label>SB<input type="number" name="steals" min="0" value="0" /></label>
+              </div>
+              <button class="attendance-submit" type="submit">打撃成績を保存</button>
+            </form>
+
+            <form class="scorebook-form" id="scorebookPitchingForm" data-scorebook-panel="pitching">
+              <div class="scorebook-form-grid dense">
+                <label class="span-2">試合<select name="game_id" class="scorebook-game-select" required></select></label>
+                <label class="span-2">投手<select name="member_id" class="scorebook-member-select" required></select></label>
+                <label>IP<input type="text" name="innings" inputmode="decimal" placeholder="5.2" required /></label>
+                <label>H<input type="number" name="hits_allowed" min="0" value="0" /></label>
+                <label>ER<input type="number" name="earned_runs" min="0" value="0" /></label>
+                <label>R<input type="number" name="runs_allowed" min="0" value="0" /></label>
+                <label>BB<input type="number" name="walks" min="0" value="0" /></label>
+                <label>K<input type="number" name="strikeouts" min="0" value="0" /></label>
+                <label>球数<input type="number" name="pitches" min="0" value="0" /></label>
+              </div>
+              <button class="attendance-submit" type="submit">投手成績を保存</button>
+            </form>
+          </aside>
+        </div>
       </section>
 
       <section class="section members-section" id="members">
@@ -310,6 +458,8 @@
     </footer>
 
     <script src="./calendar-config.js?v=20260620-calendar"></script>
-    <script src="./script.js?v=20260621-line-only"></script>
+    <script src="./attendance-config.js?v=20260622-scorebook"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./script.js?v=20260622-scorebook"></script>
   </body>
 </html>
