@@ -1522,6 +1522,257 @@ tbody tr:last-child td {
   letter-spacing: 0;
 }
 
+.scorebook-section {
+  background: #fff;
+}
+
+.scorebook-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.scorebook-board,
+.scorebook-entry {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: clamp(18px, 3vw, 28px);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.scorebook-board-head,
+.scorebook-entry-head,
+.leaderboard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.scorebook-board-head h3,
+.scorebook-entry-head h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(24px, 3.6vw, 38px);
+  line-height: 1.12;
+}
+
+.scorebook-mode {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 950;
+  background: #edf1eb;
+}
+
+.scorebook-mode.is-live {
+  color: #fff;
+  background: var(--green);
+}
+
+.scorebook-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.scorebook-summary article {
+  min-height: 88px;
+  border: 1px solid var(--line);
+  border-top: 5px solid var(--green);
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fbf7;
+}
+
+.scorebook-summary span {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--navy);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 950;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.scorebook-summary p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.leaderboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.leaderboard-panel,
+.recent-scorebook-games {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  background: #f9fbf7;
+}
+
+.leaderboard-head {
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.leaderboard-head h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.leaderboard-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mini-table-wrap {
+  overflow-x: auto;
+}
+
+.mini-table {
+  min-width: 420px;
+  box-shadow: none;
+}
+
+.mini-table th,
+.mini-table td {
+  padding: 10px;
+}
+
+.recent-scorebook-games {
+  margin-top: 12px;
+}
+
+.scorebook-game-list {
+  display: grid;
+  gap: 8px;
+}
+
+.scorebook-game-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--clay);
+  border-radius: 8px;
+  padding: 12px;
+  background: #fff;
+}
+
+.scorebook-game-card time,
+.scorebook-game-card strong,
+.scorebook-game-card small {
+  display: block;
+}
+
+.scorebook-game-card time {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.scorebook-game-card strong {
+  color: var(--ink);
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.scorebook-game-card small,
+.scorebook-game-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.scorebook-entry {
+  display: grid;
+  gap: 14px;
+}
+
+.scorebook-refresh {
+  border: 0;
+  cursor: pointer;
+}
+
+.scorebook-team-code,
+.scorebook-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.scorebook-team-code input,
+.scorebook-form input,
+.scorebook-form select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 11px;
+  color: var(--ink);
+  font-weight: 800;
+  background: #fff;
+}
+
+.scorebook-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scorebook-form {
+  display: none;
+  gap: 12px;
+}
+
+.scorebook-form.is-active {
+  display: grid;
+}
+
+.scorebook-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.scorebook-form-grid.dense {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.scorebook-form .span-2 {
+  grid-column: span 2;
+}
+
+.check-field {
+  align-content: end;
+  grid-template-columns: auto 1fr;
+  min-height: 64px;
+}
+
+.check-field input {
+  width: 18px;
+  min-height: 18px;
+  align-self: center;
+}
+
 .match-detail-section {
   background:
     linear-gradient(135deg, rgba(18, 51, 91, 0.08), rgba(31, 122, 77, 0.08)),
@@ -1708,6 +1959,7 @@ tbody tr:last-child td {
   .ground-layout,
   .practice-card,
   .attendance-layout,
+  .scorebook-layout,
   .contact-layout,
   .match-detail-layout,
   .result-layout {
@@ -1722,6 +1974,8 @@ tbody tr:last-child td {
   .ground-facts,
   .sheet-list,
   .attendance-counts,
+  .scorebook-summary,
+  .leaderboard-grid,
   .member-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1762,7 +2016,20 @@ tbody tr:last-child td {
   .ground-facts,
   .sheet-list,
   .attendance-counts,
+  .scorebook-summary,
+  .leaderboard-grid,
+  .scorebook-form-grid.dense,
   .member-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scorebook-board-head,
+  .scorebook-entry-head,
+  .leaderboard-head {
+    flex-direction: column;
+  }
+
+  .scorebook-game-card {
     grid-template-columns: 1fr;
   }
 

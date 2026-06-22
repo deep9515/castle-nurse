@@ -220,6 +220,7 @@ const attendanceStatusNames = {
 
 const attendanceStatusOrder = ["attending", "pending", "absent", "unanswered"];
 const attendanceStorageKey = "castle-nurse-attendance-v1";
+const scorebookStorageKey = "castle-nurse-scorebook-v1";
 const attendanceCandidates = [
   {
     id: "2026-07-03-night",
@@ -334,12 +335,32 @@ const attendanceRows = document.querySelector("#attendanceRows");
 const attendanceBoardTitle = document.querySelector("#attendanceBoardTitle");
 const attendanceCandidateGrid = document.querySelector("#attendanceCandidateGrid");
 const attendanceViewButtons = document.querySelectorAll("[data-attendance-view]");
+const scorebookSection = document.querySelector("#scorebook");
+const scorebookMode = document.querySelector("#scorebookMode");
+const scorebookStatus = document.querySelector("#scorebookStatus");
+const scorebookTeamCode = document.querySelector("#scorebookTeamCode");
+const scorebookRefresh = document.querySelector("#scorebookRefresh");
+const scorebookSummary = document.querySelector("#scorebookSummary");
+const battingLeaderRows = document.querySelector("#battingLeaderRows");
+const pitchingLeaderRows = document.querySelector("#pitchingLeaderRows");
+const scorebookGameList = document.querySelector("#scorebookGameList");
+const scorebookGameCount = document.querySelector("#scorebookGameCount");
+const scorebookGameForm = document.querySelector("#scorebookGameForm");
+const scorebookLineupForm = document.querySelector("#scorebookLineupForm");
+const scorebookBattingForm = document.querySelector("#scorebookBattingForm");
+const scorebookPitchingForm = document.querySelector("#scorebookPitchingForm");
+const scorebookTabs = document.querySelectorAll("[data-scorebook-tab]");
+const scorebookPanels = document.querySelectorAll("[data-scorebook-panel]");
+const scorebookGameSelects = document.querySelectorAll(".scorebook-game-select");
+const scorebookMemberSelects = document.querySelectorAll(".scorebook-member-select");
 
 let attendanceRecords = [];
 let attendanceClient = null;
 let attendanceDraft = {};
 let activeAttendanceView = "cards";
 let activeScheduleFilter = "all";
+let scorebookClient = null;
+let scorebookRecords = emptyScorebookRecords();
 
 function todayIso() {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -1352,6 +1373,643 @@ async function initAttendance() {
   renderAttendanceBoard();
 }
 
+function emptyScorebookRecords() {
+  return {
+    games: [],
+    lineups: [],
+    batting_stats: [],
+    pitching_stats: [],
+  };
+}
+
+function normalizeScorebookRecords(data = {}) {
+  return {
+    games: Array.isArray(data.games) ? data.games : [],
+    lineups: Array.isArray(data.lineups) ? data.lineups : [],
+    batting_stats: Array.isArray(data.batting_stats) ? data.batting_stats : [],
+    pitching_stats: Array.isArray(data.pitching_stats) ? data.pitching_stats : [],
+  };
+}
+
+function scorebookTeamCodeValue() {
+  return scorebookTeamCode?.value.trim() || "";
+}
+
+function localScorebookKey() {
+  return `${scorebookStorageKey}:${scorebookTeamCodeValue() || "default"}`;
+}
+
+function readLocalScorebook() {
+  try {
+    return normalizeScorebookRecords(JSON.parse(localStorage.getItem(localScorebookKey()) || "{}"));
+  } catch {
+    return emptyScorebookRecords();
+  }
+}
+
+function writeLocalScorebook(records) {
+  localStorage.setItem(localScorebookKey(), JSON.stringify(normalizeScorebookRecords(records)));
+}
+
+function restoreScorebookTeamCode() {
+  if (!scorebookTeamCode) return;
+  const key = getSupabaseConfig().teamCodeStorageKey;
+  if (!key) return;
+  try {
+    scorebookTeamCode.value = sessionStorage.getItem(key) || "";
+  } catch {
+    scorebookTeamCode.value = "";
+  }
+}
+
+function rememberScorebookTeamCode() {
+  const key = getSupabaseConfig().teamCodeStorageKey;
+  if (!key || !scorebookTeamCode) return;
+  try {
+    sessionStorage.setItem(key, scorebookTeamCode.value.trim());
+  } catch {
+    // Session storage is optional.
+  }
+}
+
+function initScorebookClient() {
+  if (!scorebookSection) return;
+  if (hasSupabaseConfig()) {
+    const config = getSupabaseConfig();
+    scorebookClient = window.supabase.createClient(config.url, config.anonKey);
+    scorebookMode.textContent = "Supabase";
+    scorebookMode.classList.add("is-live");
+    return;
+  }
+
+  scorebookClient = null;
+  scorebookMode.textContent = "Local";
+  scorebookMode.classList.remove("is-live");
+}
+
+function setScorebookState(message, tone = "muted") {
+  if (!scorebookStatus) return;
+  scorebookStatus.textContent = message;
+  scorebookStatus.dataset.tone = tone;
+}
+
+function memberById(id) {
+  return sortedMembers().find((member) => memberId(member) === String(id));
+}
+
+function buildScorebookOptions() {
+  if (!scorebookSection) return;
+  const memberOptions = sortedMembers()
+    .map(
+      (member) =>
+        `<option value="${escapeHtml(memberId(member))}">${displayMemberNumber(member)} ${escapeHtml(member.name)}</option>`,
+    )
+    .join("");
+  scorebookMemberSelects.forEach((select) => {
+    select.innerHTML = memberOptions;
+  });
+  renderScorebookGameOptions();
+}
+
+function renderScorebookGameOptions() {
+  const options = scorebookRecords.games
+    .slice()
+    .sort((a, b) => String(b.game_date).localeCompare(String(a.game_date)) || String(b.created_at || "").localeCompare(String(a.created_at || "")))
+    .map((game) => {
+      const score =
+        game.our_score != null && game.opponent_score != null
+          ? ` ${game.our_score}-${game.opponent_score}`
+          : "";
+      return `<option value="${escapeHtml(game.id)}">${escapeHtml(game.game_date)} vs ${escapeHtml(game.opponent)}${escapeHtml(score)}</option>`;
+    })
+    .join("");
+  scorebookGameSelects.forEach((select) => {
+    select.innerHTML = options || '<option value="">試合未登録</option>';
+  });
+}
+
+function toInteger(value, fallback = 0) {
+  if (value === "" || value == null) return fallback;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.trunc(number) : fallback;
+}
+
+function optionalInteger(value) {
+  if (value === "" || value == null) return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.trunc(number) : null;
+}
+
+function parseScorebookInnings(value) {
+  const text = String(value || "").trim();
+  if (!/^\d+(\.[0-2])?$/.test(text)) {
+    throw new Error("投球回は 5.2 のように入力してください。");
+  }
+  const [whole, fraction = "0"] = text.split(".");
+  return Number(whole) * 3 + Number(fraction);
+}
+
+function formatScorebookInnings(outs) {
+  const value = Number(outs || 0);
+  return `${Math.floor(value / 3)}.${value % 3}`;
+}
+
+function formatScorebookAverage(value) {
+  if (!Number.isFinite(value) || value <= 0) return ".000";
+  return value.toFixed(3).replace(/^0/, "");
+}
+
+function formatScorebookEra(value) {
+  if (!Number.isFinite(value)) return "0.00";
+  return value.toFixed(2);
+}
+
+function scorebookFormData(form) {
+  return Object.fromEntries(new FormData(form).entries());
+}
+
+function upsertByKeys(rows, nextRow, keys) {
+  const index = rows.findIndex((row) => keys.every((key) => String(row[key]) === String(nextRow[key])));
+  if (index >= 0) {
+    rows[index] = { ...rows[index], ...nextRow };
+  } else {
+    rows.push(nextRow);
+  }
+}
+
+function localUuid(prefix) {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+}
+
+function saveLocalScorebookGame(payload) {
+  const records = readLocalScorebook();
+  const now = new Date().toISOString();
+  const row = {
+    id: payload.game_id || localUuid("game"),
+    game_date: payload.game_date,
+    opponent: payload.opponent,
+    venue: payload.venue || "",
+    our_score: optionalInteger(payload.our_score),
+    opponent_score: optionalInteger(payload.opponent_score),
+    note: payload.note || "",
+    created_at: now,
+    updated_at: now,
+  };
+  upsertByKeys(records.games, row, ["id"]);
+  writeLocalScorebook(records);
+  scorebookRecords = records;
+}
+
+function saveLocalScorebookRow(collection, payload, keys) {
+  const records = readLocalScorebook();
+  upsertByKeys(records[collection], { ...payload, updated_at: new Date().toISOString() }, keys);
+  writeLocalScorebook(records);
+  scorebookRecords = records;
+}
+
+async function loadScorebookRecords() {
+  if (!scorebookSection) return;
+  if (!scorebookClient) {
+    scorebookRecords = readLocalScorebook();
+    renderScorebook();
+    return;
+  }
+
+  const teamCode = scorebookTeamCodeValue();
+  if (!teamCode) {
+    scorebookRecords = emptyScorebookRecords();
+    setScorebookState("チームコードを入力してください。", "muted");
+    renderScorebook();
+    return;
+  }
+
+  setScorebookState("読み込み中...", "muted");
+  const { data, error } = await scorebookClient.rpc("castle_nurse_get_scorebook", {
+    p_team_code: teamCode,
+  });
+  if (error) {
+    scorebookRecords = emptyScorebookRecords();
+    setScorebookState("読み込みに失敗しました。", "error");
+    renderScorebook();
+    return;
+  }
+
+  scorebookRecords = normalizeScorebookRecords(data || {});
+  setScorebookState("同期済み", "ok");
+  renderScorebook();
+}
+
+async function callScorebookRpc(name, payload) {
+  if (!scorebookClient) return { ok: true };
+  const teamCode = scorebookTeamCodeValue();
+  if (!teamCode) return { ok: false, message: "チームコードを入力してください。" };
+  const { error } = await scorebookClient.rpc(name, {
+    p_team_code: teamCode,
+    ...payload,
+  });
+  if (error) return { ok: false, message: "保存に失敗しました。" };
+  return { ok: true };
+}
+
+function scorebookBattingAggregates() {
+  const map = new Map();
+  scorebookRecords.batting_stats.forEach((row) => {
+    const key = row.member_id || row.player_name;
+    const current = map.get(key) || {
+      member_id: row.member_id,
+      player_name: row.player_name,
+      plate_appearances: 0,
+      at_bats: 0,
+      hits: 0,
+      doubles: 0,
+      triples: 0,
+      home_runs: 0,
+      rbi: 0,
+      runs: 0,
+      walks: 0,
+      strikeouts: 0,
+      steals: 0,
+    };
+    [
+      "plate_appearances",
+      "at_bats",
+      "hits",
+      "doubles",
+      "triples",
+      "home_runs",
+      "rbi",
+      "runs",
+      "walks",
+      "strikeouts",
+      "steals",
+    ].forEach((field) => {
+      current[field] += Number(row[field] || 0);
+    });
+    map.set(key, current);
+  });
+  return [...map.values()].map((row) => ({
+    ...row,
+    batting_average: row.at_bats ? row.hits / row.at_bats : 0,
+  }));
+}
+
+function scorebookPitchingAggregates() {
+  const map = new Map();
+  scorebookRecords.pitching_stats.forEach((row) => {
+    const key = row.member_id || row.player_name;
+    const current = map.get(key) || {
+      member_id: row.member_id,
+      player_name: row.player_name,
+      innings_outs: 0,
+      hits_allowed: 0,
+      earned_runs: 0,
+      runs_allowed: 0,
+      walks: 0,
+      strikeouts: 0,
+      pitches: 0,
+    };
+    ["innings_outs", "hits_allowed", "earned_runs", "runs_allowed", "walks", "strikeouts", "pitches"].forEach(
+      (field) => {
+        current[field] += Number(row[field] || 0);
+      },
+    );
+    map.set(key, current);
+  });
+  return [...map.values()].map((row) => ({
+    ...row,
+    era: row.innings_outs ? (row.earned_runs * 27) / row.innings_outs : Number.POSITIVE_INFINITY,
+  }));
+}
+
+function renderScorebookSummary() {
+  const batting = scorebookBattingAggregates();
+  const pitching = scorebookPitchingAggregates();
+  const battingTotals = batting.reduce(
+    (result, row) => ({
+      at_bats: result.at_bats + row.at_bats,
+      hits: result.hits + row.hits,
+      home_runs: result.home_runs + row.home_runs,
+      rbi: result.rbi + row.rbi,
+    }),
+    { at_bats: 0, hits: 0, home_runs: 0, rbi: 0 },
+  );
+  const pitchingTotals = pitching.reduce(
+    (result, row) => ({
+      innings_outs: result.innings_outs + row.innings_outs,
+      earned_runs: result.earned_runs + row.earned_runs,
+      strikeouts: result.strikeouts + row.strikeouts,
+    }),
+    { innings_outs: 0, earned_runs: 0, strikeouts: 0 },
+  );
+  const items = [
+    ["試合", `${scorebookRecords.games.length}`],
+    ["打率", formatScorebookAverage(battingTotals.at_bats ? battingTotals.hits / battingTotals.at_bats : 0)],
+    ["本塁打", `${battingTotals.home_runs}`],
+    ["打点", `${battingTotals.rbi}`],
+    ["防御率", formatScorebookEra(pitchingTotals.innings_outs ? (pitchingTotals.earned_runs * 27) / pitchingTotals.innings_outs : 0)],
+    ["奪三振", `${pitchingTotals.strikeouts}`],
+  ];
+  scorebookSummary.innerHTML = items
+    .map(
+      ([label, value]) => `
+        <article>
+          <span>${escapeHtml(value)}</span>
+          <p>${escapeHtml(label)}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+function renderScorebookLeaders() {
+  const battingRows = scorebookBattingAggregates()
+    .filter((row) => row.at_bats > 0)
+    .sort((a, b) => b.batting_average - a.batting_average || b.hits - a.hits)
+    .slice(0, 5);
+  battingLeaderRows.innerHTML = battingRows.length
+    ? battingRows
+        .map(
+          (row, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${escapeHtml(row.player_name)}</td>
+              <td>${formatScorebookAverage(row.batting_average)}</td>
+              <td>${row.hits}/${row.at_bats}</td>
+              <td>${row.home_runs}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `<tr><td colspan="5" class="empty-table">打撃成績はまだありません。</td></tr>`;
+
+  const pitchingRows = scorebookPitchingAggregates()
+    .filter((row) => row.innings_outs > 0)
+    .sort((a, b) => a.era - b.era || b.innings_outs - a.innings_outs)
+    .slice(0, 5);
+  pitchingLeaderRows.innerHTML = pitchingRows.length
+    ? pitchingRows
+        .map(
+          (row, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${escapeHtml(row.player_name)}</td>
+              <td>${formatScorebookEra(row.era)}</td>
+              <td>${formatScorebookInnings(row.innings_outs)}</td>
+              <td>${row.strikeouts}</td>
+            </tr>
+          `,
+        )
+        .join("")
+    : `<tr><td colspan="5" class="empty-table">投手成績はまだありません。</td></tr>`;
+}
+
+function scorebookGameScore(game) {
+  if (game.our_score == null || game.opponent_score == null) return "未入力";
+  return `${game.our_score} - ${game.opponent_score}`;
+}
+
+function renderScorebookGames() {
+  const games = scorebookRecords.games
+    .slice()
+    .sort((a, b) => String(b.game_date).localeCompare(String(a.game_date)) || String(b.created_at || "").localeCompare(String(a.created_at || "")));
+  scorebookGameCount.textContent = `${games.length}件`;
+  scorebookGameList.innerHTML = games.length
+    ? games
+        .slice(0, 6)
+        .map((game) => {
+          const lineupCount = scorebookRecords.lineups.filter((row) => row.game_id === game.id).length;
+          const battingCount = scorebookRecords.batting_stats.filter((row) => row.game_id === game.id).length;
+          const pitchingCount = scorebookRecords.pitching_stats.filter((row) => row.game_id === game.id).length;
+          return `
+            <article class="scorebook-game-card">
+              <div>
+                <time>${escapeHtml(game.game_date)}</time>
+                <strong>VS ${escapeHtml(game.opponent)}</strong>
+                <small>${escapeHtml(game.venue || "未定")} / ${escapeHtml(scorebookGameScore(game))}</small>
+              </div>
+              <p>O ${lineupCount} / B ${battingCount} / P ${pitchingCount}</p>
+            </article>
+          `;
+        })
+        .join("")
+    : `<p class="empty">試合データはまだありません。</p>`;
+}
+
+function renderScorebook() {
+  if (!scorebookSection) return;
+  renderScorebookGameOptions();
+  renderScorebookSummary();
+  renderScorebookLeaders();
+  renderScorebookGames();
+}
+
+function scorebookGamePayload(form) {
+  const data = scorebookFormData(form);
+  return {
+    game_id: data.game_id || null,
+    game_date: data.game_date,
+    opponent: data.opponent.trim(),
+    venue: data.venue.trim(),
+    our_score: optionalInteger(data.our_score),
+    opponent_score: optionalInteger(data.opponent_score),
+    note: data.note.trim(),
+  };
+}
+
+function selectedScorebookMember(form) {
+  const data = scorebookFormData(form);
+  const member = memberById(data.member_id);
+  return {
+    member_id: String(data.member_id),
+    player_name: member?.name || String(data.member_id),
+  };
+}
+
+async function saveScorebookGame(event) {
+  event.preventDefault();
+  const payload = scorebookGamePayload(scorebookGameForm);
+  if (!payload.opponent) {
+    setScorebookState("相手を入力してください。", "error");
+    return;
+  }
+  rememberScorebookTeamCode();
+  setScorebookState("保存中...", "muted");
+  if (!scorebookClient) {
+    saveLocalScorebookGame(payload);
+  } else {
+    const result = await callScorebookRpc("castle_nurse_upsert_game", {
+      p_game_id: payload.game_id,
+      p_game_date: payload.game_date,
+      p_opponent: payload.opponent,
+      p_venue: payload.venue,
+      p_our_score: payload.our_score,
+      p_opponent_score: payload.opponent_score,
+      p_note: payload.note,
+    });
+    if (!result.ok) {
+      setScorebookState(result.message, "error");
+      return;
+    }
+  }
+  scorebookGameForm.reset();
+  scorebookGameForm.elements.game_date.value = team.today;
+  setScorebookState("保存しました。", "ok");
+  await loadScorebookRecords();
+}
+
+async function saveScorebookLineup(event) {
+  event.preventDefault();
+  const data = scorebookFormData(scorebookLineupForm);
+  const member = selectedScorebookMember(scorebookLineupForm);
+  const payload = {
+    game_id: data.game_id,
+    ...member,
+    batting_order: toInteger(data.batting_order),
+    position: data.position.trim(),
+    starter: data.starter === "on",
+    note: data.note.trim(),
+  };
+  rememberScorebookTeamCode();
+  setScorebookState("保存中...", "muted");
+  if (!scorebookClient) {
+    saveLocalScorebookRow("lineups", payload, ["game_id", "member_id"]);
+  } else {
+    const result = await callScorebookRpc("castle_nurse_upsert_lineup", {
+      p_game_id: payload.game_id,
+      p_member_id: payload.member_id,
+      p_player_name: payload.player_name,
+      p_batting_order: payload.batting_order,
+      p_position: payload.position,
+      p_starter: payload.starter,
+      p_note: payload.note,
+    });
+    if (!result.ok) {
+      setScorebookState(result.message, "error");
+      return;
+    }
+  }
+  scorebookLineupForm.reset();
+  setScorebookState("保存しました。", "ok");
+  await loadScorebookRecords();
+}
+
+async function saveScorebookBatting(event) {
+  event.preventDefault();
+  const data = scorebookFormData(scorebookBattingForm);
+  const member = selectedScorebookMember(scorebookBattingForm);
+  const payload = {
+    game_id: data.game_id,
+    ...member,
+    plate_appearances: toInteger(data.plate_appearances),
+    at_bats: toInteger(data.at_bats),
+    hits: toInteger(data.hits),
+    doubles: toInteger(data.doubles),
+    triples: toInteger(data.triples),
+    home_runs: toInteger(data.home_runs),
+    rbi: toInteger(data.rbi),
+    runs: toInteger(data.runs),
+    walks: toInteger(data.walks),
+    strikeouts: toInteger(data.strikeouts),
+    steals: toInteger(data.steals),
+  };
+  if (payload.plate_appearances > 0 && payload.at_bats > payload.plate_appearances) {
+    setScorebookState("ABがPAを超えています。", "error");
+    return;
+  }
+  if (payload.hits > payload.at_bats || payload.doubles + payload.triples + payload.home_runs > payload.hits) {
+    setScorebookState("安打数の内訳を確認してください。", "error");
+    return;
+  }
+  rememberScorebookTeamCode();
+  setScorebookState("保存中...", "muted");
+  if (!scorebookClient) {
+    saveLocalScorebookRow("batting_stats", payload, ["game_id", "member_id"]);
+  } else {
+    const result = await callScorebookRpc("castle_nurse_upsert_batting_stat", {
+      p_game_id: payload.game_id,
+      p_member_id: payload.member_id,
+      p_player_name: payload.player_name,
+      p_plate_appearances: payload.plate_appearances,
+      p_at_bats: payload.at_bats,
+      p_hits: payload.hits,
+      p_doubles: payload.doubles,
+      p_triples: payload.triples,
+      p_home_runs: payload.home_runs,
+      p_rbi: payload.rbi,
+      p_runs: payload.runs,
+      p_walks: payload.walks,
+      p_strikeouts: payload.strikeouts,
+      p_steals: payload.steals,
+    });
+    if (!result.ok) {
+      setScorebookState(result.message, "error");
+      return;
+    }
+  }
+  scorebookBattingForm.reset();
+  setScorebookState("保存しました。", "ok");
+  await loadScorebookRecords();
+}
+
+async function saveScorebookPitching(event) {
+  event.preventDefault();
+  const data = scorebookFormData(scorebookPitchingForm);
+  const member = selectedScorebookMember(scorebookPitchingForm);
+  let inningsOuts = 0;
+  try {
+    inningsOuts = parseScorebookInnings(data.innings);
+  } catch (error) {
+    setScorebookState(error.message, "error");
+    return;
+  }
+  const payload = {
+    game_id: data.game_id,
+    ...member,
+    innings_outs: inningsOuts,
+    hits_allowed: toInteger(data.hits_allowed),
+    earned_runs: toInteger(data.earned_runs),
+    runs_allowed: toInteger(data.runs_allowed),
+    walks: toInteger(data.walks),
+    strikeouts: toInteger(data.strikeouts),
+    pitches: toInteger(data.pitches),
+  };
+  rememberScorebookTeamCode();
+  setScorebookState("保存中...", "muted");
+  if (!scorebookClient) {
+    saveLocalScorebookRow("pitching_stats", payload, ["game_id", "member_id"]);
+  } else {
+    const result = await callScorebookRpc("castle_nurse_upsert_pitching_stat", {
+      p_game_id: payload.game_id,
+      p_member_id: payload.member_id,
+      p_player_name: payload.player_name,
+      p_innings_outs: payload.innings_outs,
+      p_hits_allowed: payload.hits_allowed,
+      p_earned_runs: payload.earned_runs,
+      p_runs_allowed: payload.runs_allowed,
+      p_walks: payload.walks,
+      p_strikeouts: payload.strikeouts,
+      p_pitches: payload.pitches,
+    });
+    if (!result.ok) {
+      setScorebookState(result.message, "error");
+      return;
+    }
+  }
+  scorebookPitchingForm.reset();
+  setScorebookState("保存しました。", "ok");
+  await loadScorebookRecords();
+}
+
+async function initScorebook() {
+  if (!scorebookSection) return;
+  buildScorebookOptions();
+  restoreScorebookTeamCode();
+  initScorebookClient();
+  if (scorebookGameForm) scorebookGameForm.elements.game_date.value = team.today;
+  await loadScorebookRecords();
+}
+
 function resultStatus(result) {
   if (result.ourScore > result.opponentScore) return "win";
   if (result.ourScore < result.opponentScore) return "loss";
@@ -1516,12 +2174,36 @@ if (attendanceForm && attendanceMember && attendanceCandidateGrid && attendanceT
   });
 }
 
+if (scorebookSection) {
+  scorebookTabs.forEach((button) => {
+    button.addEventListener("click", () => {
+      scorebookTabs.forEach((item) => item.classList.toggle("is-active", item === button));
+      scorebookPanels.forEach((panel) =>
+        panel.classList.toggle("is-active", panel.dataset.scorebookPanel === button.dataset.scorebookTab),
+      );
+    });
+  });
+
+  scorebookTeamCode.addEventListener("change", async () => {
+    rememberScorebookTeamCode();
+    await loadScorebookRecords();
+  });
+  scorebookRefresh.addEventListener("click", loadScorebookRecords);
+  scorebookGameForm.addEventListener("submit", saveScorebookGame);
+  scorebookLineupForm.addEventListener("submit", saveScorebookLineup);
+  scorebookBattingForm.addEventListener("submit", saveScorebookBatting);
+  scorebookPitchingForm.addEventListener("submit", saveScorebookPitching);
+}
+
 renderSummary();
 renderSchedule();
 renderMembers();
 renderResults();
 if (attendanceForm) {
   initAttendance();
+}
+if (scorebookSection) {
+  initScorebook();
 }
 initGoogleCalendarSchedule();
 initPracticeSheetPanel();
